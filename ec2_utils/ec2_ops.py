@@ -12,11 +12,11 @@ def get_ec2_instances(region):
             instances.append(instance)
     return instances
 
-def filter_instances(instances, tag_key=None, tag_value=None)
+def filter_instances(instances, tag_key=None, tag_value=None):
     filtered = []
     for instance in instances:
         tags = {tag['Key']: tag['Value'] for tag in instance.get('Tags', [])}
-        if tag_key and tags.get(tag_key) != tag_value # If provided tag_key exists, and then provided tag_value does not exist in the current tag list.
+        if tag_key and tags.get(tag_key) != tag_value: # If provided tag_key exists, and then provided tag_value does not exist in the current tag list.
             continue # Skip this loop because the provided combination of key/value does not exist in the current tag list of the regional EC2 instances.
         filtered.append(instance)
     return filtered
