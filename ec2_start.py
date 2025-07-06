@@ -10,7 +10,7 @@ from ec2_utils.ec2_ops import get_ec2_instances, filter_instances, start_instanc
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # Start all EC2 instances in a specified region.
-def start_ec2_instances(region):
+def start_ec2_instances():
     parser = argparse.ArgumentParser(description="List EC2 instances and their metadata.")
     parser.add_argument("--region", required=True, help="AWS region, e.g. us-west-2")
     parser.add_argument("--tag-key", help="Tag key to filter")

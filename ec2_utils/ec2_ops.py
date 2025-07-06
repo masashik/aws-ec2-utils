@@ -39,6 +39,6 @@ def start_instances(region, instance_ids, dry_run=False):
         return
     try:
         ec2.start_instances(InstanceIds=instance_ids, DryRun=dry_run)
-        logging.info(f"{'Dry run:' if dry_run else 'Stopped'} {instance_ids}")
+        logging.info(f"{'Dry run:' if dry_run else 'Started'} {instance_ids}")
     except Exception as e:
         logging.error(f"Error starting instances: {e}")
