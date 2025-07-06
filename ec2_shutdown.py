@@ -9,7 +9,7 @@ from ec2_utils.ec2_ops import get_ec2_instances, filter_instances, stop_instance
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-# Shutdown all EC2 instances in a specified region.
+# Shutdown all EC2 instances in a specified region filtered by provided key/value.
 def main():
     parser = argparse.ArgumentParser(description="List EC2 instances and their metadata.")
     parser.add_argument("--region", required=True, help="AWS region, e.g. us-west-2")
