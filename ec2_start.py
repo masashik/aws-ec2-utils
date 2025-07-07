@@ -16,7 +16,14 @@ def start_ec2_instances():
     parser.add_argument("--tag-key", help="Tag key to filter")
     parser.add_argument("--tag-value", help="Tag value to filter")
     parser.add_argument("--dry-run", action="store_true", help="Dry run only")
+    parser.add_argument("--log-file", help="Optional log file path")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    parser.add_argument("--state", help="instance state, e.g. running")
+    parser.add_argument("--min-uptime-hours", help="AWS region, e.g. 2")
+
     args = parser.parse_args()
+
+    setup_logging(log_file=args.log_file, verbose=args.verbose)
 
     instances = get_ec2_instances(args.region)
     filtered = filter_instances(instances,args.tag_key,args.tag_value)
