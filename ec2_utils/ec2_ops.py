@@ -2,6 +2,8 @@
 
 import boto3
 import logging
+import time
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -32,7 +34,7 @@ def start_instances(region, instance_ids, dry_run=False, retries=3):
                 raise
             time.sleep(2 ** attempt)  # Exponential backoff
 
-def stop_instances(region, instance_ids, dry_run=False):
+def stop_instances(region, instance_ids, dry_run=False, retries=3):
     if not instance_ids:
         logging.info("No instances to stop.")
         return
