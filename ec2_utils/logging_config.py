@@ -2,6 +2,11 @@ import logging
 
 def setup_logging(log_file=None, verbose=False):
     log_level = logging.DEBUG if verbose else logging.INFO
+    root = logging.getLogger()
+    if root.handlers:
+        for handler in root.handlers[:]:
+            root.removeHandler(handler)
+
     handlers = [logging.StreamHandler()]
 
     if log_file:
