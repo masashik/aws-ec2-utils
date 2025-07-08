@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 # Usage:
-#       python3 ec2_shutdown.py --region ca-central-1 --tag-key env --tag-value dev --dry-run --log-file --verbose --state running --min-uptime-hours 2
-#
+#   Ex. python3 ec2_start.py    --region ca-central-1 --tag-key env --tag-value dev --dry-run --log-file start.log --verbose
+#   Ex. python3 ec2_shutdown.py --region ca-central-1 --tag-key env --tag-value dev --dry-run --log-file shutdown.log --verbose
 
 import boto3
 from botocore.exceptions import ClientError
