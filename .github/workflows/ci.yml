@@ -23,4 +23,4 @@ jobs:
       run: flake8 ec2_utils tests
 
     - name: Run tests
-      run: pytest --maxfail=1 --disable-warnings --con
+      run: pytest --maxfail=1 --disable-warnings --cov=ec2_utils
