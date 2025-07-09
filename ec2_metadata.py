@@ -10,6 +10,7 @@ from ec2_utils.filters import filter_instances
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
+
 def get_ec2_metadata():
     parser = argparse.ArgumentParser(description="List EC2 instances and their metadata.")
     parser.add_argument("--region", required=True, help="AWS region, e.g. us-west-2")
@@ -19,7 +20,7 @@ def get_ec2_metadata():
     args = parser.parse_args()
 
     instances = get_ec2_instances(args.region)
-    filtered = filter_instances(instances,args.tag_key,args.tag_value)
+    filtered = filter_instances(instances, args.tag_key, args.tag_value)
 
     instance_ids = []
     for i in filtered:
@@ -54,7 +55,9 @@ def get_ec2_metadata():
             instances.append(instance_info)
 
     for i in instances:
-        print(f"[{i['State'].upper()}] {i['InstanceId']} - {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}")
+        print(f"[{i['State'].upper()}] {i['InstanceId']}" +
+              "- {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}")
+
 
 if __name__ == "__main__":
     get_ec2_metadata()

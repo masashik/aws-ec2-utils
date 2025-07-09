@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from ec2_utils.ec2_ops import stop_instances
 from ec2_utils.filters import filter_instances
 
+
 class TestEC2Utils(unittest.TestCase):
 
     def test_filter_instances_by_tag(self):
@@ -51,6 +52,7 @@ class TestEC2Utils(unittest.TestCase):
         mock_boto.return_value = fake_client
         stop_instances("us-east-1", ["i-123"], dry_run=True)
         fake_client.stop_instances.assert_called_once_with(InstanceIds=["i-123"], DryRun=True)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import boto3
-from botocore.exceptions import ClientError
 import argparse
 import logging
 from ec2_utils.ec2_ops import get_ec2_instances, stop_instances
@@ -10,6 +8,7 @@ from ec2_utils.logging_config import setup_logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
 
 # Shutdown all EC2 instances in a specified region filtered by provided key/value.
 def main():
@@ -26,13 +25,14 @@ def main():
     setup_logging(log_file=args.log_file, verbose=args.verbose)
 
     instances = get_ec2_instances(args.region)
-    filtered = filter_instances(instances,args.tag_key,args.tag_value)
+    filtered = filter_instances(instances, args.tag_key, args.tag_value)
 
     instance_ids = []
     for i in filtered:
         instance_ids.append(i["InstanceId"])
 
     stop_instances(args.region, instance_ids, dry_run=args.dry_run)
+
 
 if __name__ == "__main__":
     main()

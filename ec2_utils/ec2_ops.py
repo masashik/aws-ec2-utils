@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 
+
 def get_ec2_instances(region):
     instances = []
     ec2 = boto3.client("ec2", region_name=region)
@@ -15,6 +16,7 @@ def get_ec2_instances(region):
         for instance in reservation["Instances"]:
             instances.append(instance)
     return instances
+
 
 def start_instances(region, instance_ids, dry_run=False, retries=3):
     if not instance_ids:
@@ -32,6 +34,7 @@ def start_instances(region, instance_ids, dry_run=False, retries=3):
             if attempt == retries:
                 raise
             time.sleep(2 ** attempt)  # Exponential backoff
+
 
 def stop_instances(region, instance_ids, dry_run=False, retries=3):
     if not instance_ids:

@@ -1,5 +1,6 @@
 import logging
 
+
 def setup_logging(log_file=None, verbose=False):
     log_level = logging.DEBUG if verbose else logging.INFO
     root = logging.getLogger()
