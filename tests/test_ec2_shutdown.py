@@ -47,7 +47,7 @@ class TestEC2Utils(unittest.TestCase):
         self.assertEqual(len(result), 0)
 
     @patch("boto3.client")
-    def test_stop_instances(mock_boto):
+    def test_stop_instances(self, mock_boto):
         fake_client = MagicMock()
         mock_boto.return_value = fake_client
         stop_instances("us-east-1", ["i-123"], dry_run=True)
