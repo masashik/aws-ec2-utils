@@ -11,6 +11,10 @@ def filter_instances(instances, tag_key=None, tag_value=None):
         tags = {tag['Key']: tag['Value'] for tag in instance.get('Tags', [])}
         if tag_key and tags.get(tag_key) != tag_value:
             continue  # Skip this loop because the provided combination of key/value does not exist.
+        if instance.get("State", {}).get("Name") == "terminated":
+            continue
+        if instance.get("State", {}).get("Name") == "shutting-down":
+            continue
         filtered.append(instance)
     return filtered
 

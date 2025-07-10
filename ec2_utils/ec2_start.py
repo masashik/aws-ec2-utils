@@ -8,9 +8,9 @@
 
 import argparse
 import logging
-from ec2_utils.ec2_ops import get_ec2_instances, start_instances
-from ec2_utils.filters import filter_instances
-from ec2_utils.logging_config import setup_logging
+from ec2_ops import get_ec2_instances, start_instances
+from filters import filter_instances
+from logging_config import setup_logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

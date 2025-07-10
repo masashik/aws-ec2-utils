@@ -2,16 +2,21 @@
 
 import argparse
 import logging
-from ec2_utils.ec2_ops import get_ec2_instances, stop_instances
-from ec2_utils.filters import filter_instances
-from ec2_utils.logging_config import setup_logging
+from ec2_ops import get_ec2_instances, stop_instances
+from filters import filter_instances
+from logging_config import setup_logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
+logger = logging.getLogger(__name__)
 
 # Shutdown all EC2 instances in a specified region filtered by provided key/value.
 def main():
+    #import sys
+    #logger.info("MAIN() IS RUNNING")
+    #print("MAIN CALLED")
+    #sys.stdout.flush()
     parser = argparse.ArgumentParser(description="List EC2 instances and their metadata.")
     parser.add_argument("--region", required=True, help="AWS region, e.g. us-west-2")
     parser.add_argument("--tag-key", help="Tag key to filter")
@@ -32,7 +37,6 @@ def main():
         instance_ids.append(i["InstanceId"])
 
     stop_instances(args.region, instance_ids, dry_run=args.dry_run)
-
 
 if __name__ == "__main__":
     main()
