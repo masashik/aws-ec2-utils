@@ -20,6 +20,11 @@ variable "key_name" {
   type        = string
 }
 
+variable "vpc_security_group_ids" {
+  description = "List of VPC security group IDs"
+  type        = list(string)
+}
+
 provider "aws" {
   region = "ca-central-1"
 }
@@ -29,9 +34,10 @@ resource "aws_instance" "dev_ec2" {
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id  # <-- Replace with your subnet ID
   key_name               = var.key_name    # <-- Replace with your SSH key name
+  vpc_security_group_ids = var.vpc_security_group_ids
 
   tags = {
-    Name = "dev-instance"
+    Name = "test-server-4"
     env  = "dev"
   }
 }
