@@ -37,7 +37,7 @@ resource "aws_instance" "dev_ec2" {
   vpc_security_group_ids = var.vpc_security_group_ids
 
   tags = {
-    Name = "test-server-4"
+    Name = "test-server-5"
     env  = "dev"
   }
 }
@@ -49,3 +49,7 @@ output "instance_id" {
 output "public_ip" {
   value = aws_instance.dev_ec2.public_ip
 }
+
+output "instance_ip" {
+    value = aws_instance.dev_ec2.public_ip
+  }
