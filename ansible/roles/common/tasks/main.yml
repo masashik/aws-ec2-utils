@@ -1,0 +1,32 @@
+---
+# tasks file for roles/common
+- name: Update yum packages (Amazon Linux / RHEL)
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Update apt packages (Ubuntu / Debian)
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install base packages
+  ansible.builtin.yum:
+    name:
+      - git
+      - python3
+      - python3-pip
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Copy setup script (optional)
+  copy:
+    src: files/setup.sh
+    dest: /tmp/setup.sh
+    mode: '0755'
+
+- name: Run setup script
+  shell: /tmp/setup.sh
+  when: ansible_os_family == "RedHat"
+  failed_when: false
