@@ -14,17 +14,17 @@ def get_instances(region):
     )
     return instances
 
-def should_shutdown(instance, threshold_hours):
+def should_shutdown(instance, threshold_minutes):
     launch_time = instance.launch_time.replace(tzinfo=timezone.utc)
     uptime = datetime.now(timezone.utc) - launch_time
-    return uptime > timedelta(hours=threshold_hours)
+    return uptime > timedelta(minutes=threshold_minutes)
 
-def shutdown_instances(instances, threshold_hours, dry_run):
+def shutdown_instances(instances, threshold_minutes, dry_run):
     for instance in instances:
-        import sys
-        print("shutdown_instances....")
-        sys.stdout.flush()
-        if should_shutdown(instance, threshold_hours):
+        #import sys
+        #print("shutdown_instances....")
+        #sys.stdout.flush()
+        if should_shutdown(instance, threshold_minutes):
             print(f"Stopping {instance.id} (uptime exceeded)")
             try:
                 instance.stop(DryRun=dry_run)
@@ -34,7 +34,7 @@ def shutdown_instances(instances, threshold_hours, dry_run):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--region', required=True)
-    parser.add_argument('--hours', type=int, default=1)
+    parser.add_argument('--minutes', type=int, default=1)
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
 
@@ -42,7 +42,7 @@ def main():
     import sys
     print(instances)
     sys.stdout.flush()
-    shutdown_instances(instances, args.hours, args.dry_run)
+    shutdown_instances(instances, args.minutes, args.dry_run)
 
 if __name__ == "__main__":
     main()
