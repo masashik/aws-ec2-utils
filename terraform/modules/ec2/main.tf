@@ -1,4 +1,5 @@
 resource "aws_instance" "dev_ec2" {
+  count                  = var.instance_count
   ami                    = var.ami  # Amazon Linux 2 AMI in ca-central-1
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id  # <-- Replace with your subnet ID
@@ -6,7 +7,8 @@ resource "aws_instance" "dev_ec2" {
   vpc_security_group_ids = var.vpc_security_group_ids
 
   tags = {
-    Name = "test-server-5"
+    Name = "dev-server"
     env  = "dev"
+    auto_shutdown = "true"
   }
 }

@@ -27,3 +27,7 @@ variable "key_name" {
 #  type        = string
 #  description = "SG to attach to EC2"
 #}
+variable "instance_count" {
+  description = "Number of EC2 instances to launch"
+  type        = number
+}
