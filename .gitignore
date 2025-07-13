@@ -213,3 +213,4 @@ terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform.tfvars
 .terraform.lock.hcl
+terraform/terraform.tfvars.backup

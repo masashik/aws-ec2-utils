@@ -1,0 +1,6 @@
+- name: Configure EC2 instance
+  hosts: dev
+  become: yes
+  roles:
+    - common
+    - nginx
