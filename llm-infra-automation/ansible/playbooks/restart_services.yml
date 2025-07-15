@@ -1,0 +1,16 @@
+---
+- name: Restart web services on target EC2
+  hosts: all
+  become: yes
+  tasks:
+    - name: Restart NGINX
+      service:
+        name: nginx
+        state: restarted
+      ignore_errors: yes
+
+    - name: Restart Node.js (if running as a service)
+      service:
+        name: nodejs
+        state: restarted
+      ignore_errors: yes
