@@ -1,5 +1,6 @@
 import subprocess
 
+
 def apply_ansible_remediation(playbook):
     try:
         result = subprocess.run(
@@ -11,6 +12,7 @@ def apply_ansible_remediation(playbook):
         print("STDERR:", result.stderr)
     except Exception as e:
         print("Failed to run remediation playbook:", e)
+
 
 if __name__ == "__main__":
     playbook_path = "ansible/playbooks/restart_services.yml"

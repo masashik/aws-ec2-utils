@@ -1,5 +1,6 @@
 import requests
 
+
 def ask_llm(prompt, use_openai=False, api_key=None):
     if use_openai:
         import openai
@@ -16,6 +17,7 @@ def ask_llm(prompt, use_openai=False, api_key=None):
             "stream": False
         })
         return response.json().get("response", "").strip()
+
 
 if __name__ == "__main__":
     example_prompt = "EC2 instance is unreachable and returns no HTTP response on port 80."

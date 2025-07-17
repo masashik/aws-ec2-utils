@@ -1,6 +1,7 @@
 import boto3
 import requests
 
+
 def check_ec2_health():
     ec2 = boto3.client('ec2')
     response = ec2.describe_instance_status(IncludeAllInstances=True)
@@ -15,12 +16,14 @@ def check_ec2_health():
 
     return unhealthy_instances
 
+
 def check_http_service(ip, port=80):
     try:
         res = requests.get(f"http://{ip}:{port}", timeout=5)
         return res.status_code
     except requests.RequestException:
         return None
+
 
 if __name__ == "__main__":
     instances = check_ec2_health()
