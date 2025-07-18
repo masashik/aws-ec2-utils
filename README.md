@@ -1,207 +1,186 @@
-# ![CI](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg) AWS EC2 automation of provisioning and configuration management with Python3/Terraform/Ansible 
+# ![CI](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)IaC development infrastructure provisioning in Cloud
 
 ## A problem to solve
 
-Simplifying the provisioning EC2 instances and configuration management of toolchain 
-and controlling EC2 instances without complex AWS UI interactions. Everything is in CLI!
+Infrastructure as Code (IaC) - simplifying setting up development infrastructure with EC2, OpenTofu, Ansible, and Python CLI with Boto3 AWS SDK. Running EC2 servers ready accept any application deployment for experiment.
+
+## Architecture of provisioned AWS-EC2-Utils
+
+![Image](https://github.com/user-attachments/assets/9abcae41-3b1c-4663-a9d5-e3e9e6412edc)
 
 ## Features
- - EC2 automation with Terraform
- - Basic Ansible provisioning
- - Python CLI tools with Boto3
- - CI with GitHub Actions
- - Containerization with Docker
- - Auto-generated inventory
-
+ - Fully coded and automated development infrastructure provisioning from scratch with OpenTofu.
+ - Idling EC2 instances shutdown with GitHub Actions to save cost.
+ - Incremental configuration update with Ansible.
+ - Python CLI utilizing Boto3 to start, shutdown, terminate, and status-checking of EC2 instances.
+ - CI enabled with auto syntax checking and testing when new commits made with GitHub Actions.
+ - Containerization to isolate runtime dependency.
+ - Auto-generating host inventory.
 
 ## A role of each tool
- - Terraform 
-    - Provisioning EC2 instances declared and defined states.
- - Ansible 
+ - OpenTofu
+    - Provisioning entire development infrastructure in AWS with EC2 instances.
+ - Ansible
     - Configuration management of each EC2 instance installing necessary toolchain and imperative and incremental updates.
- - Python CLI 
-    - Controlling on EC2 instances like starting and stopping a group of servers.
+ - Python CLI
+    - Controlling on EC2 instances like start, shutdown, terminate, and status-checking of EC2 instances.
+
+## How-to-setup
+### 1. Install provisioning tool - OpenTofu
+https://opentofu.org/docs/intro/install/
+```
+brew update
+brew install opentofu
+```
+### 2. Install configuration management tool - Ansible
+
+https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#pipx-install
+```
+brew update
+brew install ansible
+```
+### 3. Install CLI dev tools - Python3
+
+https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#pipx-install
+```
+brew update
+brew install python3
+```
 
 ## How-to-use
-### Provisioning EC2 Instance
-```
-brew install terraform
-terraform init
-terraform plan
-terraform apply -auto-approve
-```
-
-### Configuration management
-```
-brew install ansible
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yaml
-```
-
-### Controlling EC2 instances
-```
+### Provisioning development infrastructure in cloud
+```bash
 git clone https://github.com/masashik/aws-ec2-utils
-cd aws-ec2-utils
+
+cd aws-ec2-utils/terraform
+
+tofu init
+
+tofu apply -var="ami=ami-0f9cb75652314425a" -var="instance_count=2" -var="instance_type=t2.micro" -var="key_name=your-key-name" -auto-approve
+```
+*Please choose your OS image for ami (Amazon Machine Image.)
+*ami-0f9cb75652314425a is Amazon linux distro.
+
+### Python3 CLI with Boto3
+```bash
+git clone https://github.com/masashik/aws-ec2-utils
+
+cd aws-ec2-utils/
+
+*Install dependency python modules.
 pip3 install -r requirements.txt
-ec2-start --region ca-central-1 --tag-key env --tag-value dev --dry-run
+
+* Install the Python CLI
+(ec2-start/ec2-stop/ec2-status)
+pip install .
 ```
 
-### Controlling EC2 instances in docker container (environment free)
+To verify if the CLI is properly installed and available, run the intalled CLI.
+
+```bash
+$ ec2-start
+
+usage: ec2-start [-h] --region REGION [--tag-key TAG_KEY] [--tag-value TAG_VALUE] [--dry-run] [--log-file LOG_FILE] [--verbose] [--state STATE]
+                 [--min-uptime-hours MIN_UPTIME_HOURS]
+ec2-start: error: the following arguments are required: --region
+
+This is successfully installed and ready to use.
+```
+
+### Ansible
+```bash
+git clone https://github.com/masashik/aws-ec2-utils
+
+cd aws-ec2-utils/ansible
+
+ansible-playbook -i inventory.ini site.yaml
+```
+
+### Containerized version
 ```
 git clone https://github.com/masashik/aws-ec2-utils
+
 cd aws-ec2-utils
+
 docker build -t aws-ec2-utils .
+
 docker run -v ~/.aws:/root/.aws:ro aws-ec2-utils python3 ec2_metadata.py --region ca-central-1 --tag-key env --tag-value dev --dry-run
 ```
 
-## Example output and logs.
+## Example
 
 ### Terraform
+
 ```
-terraform init
-
-Initializing the backend...
-Initializing provider plugins...
-- Reusing previous version of hashicorp/aws from the dependency lock file
-- Installing hashicorp/aws v6.2.0...
-
-terraform plan
-
-aws_instance.dev_ec2: Refreshing state... [id=i-0b0d582fbffb1c04b]
-
-Note: Objects have changed outside of Terraform
-
-Terraform detected the following changes made outside of Terraform since the last "terraform
-apply" which may have affected this plan:
-
-# aws_instance.dev_ec2 has changed
-~ resource "aws_instance" "dev_ec2" {
-    id                                   = "i-0b0d582fbffb1c04b"
-        - public_ip                            = "16.52.72.254" -> null
-        tags                                 = {
-            "Name" = "test-server-4"
-                "env"  = "dev"
-        }
-# (37 unchanged attributes hidden)
-
-# (8 unchanged blocks hidden)
-}
+$ tofu apply -var="ami=ami-0f9cb75652314425a" -var="instance_count=2" -var="instance_type=t2.micro" -var="key_name=your-aws-key-here" -auto-approve
 
 
-Unless you have made equivalent changes to your configuration, or ignored the relevant
-attributes using ignore_changes, the following plan may include actions to undo or respond to
-these changes.
+Plan: 2 to add, 0 to change, 0 to destroy.
+module.ec2.aws_instance.dev_ec2[1]: Creating...
+module.ec2.aws_instance.dev_ec2[0]: Creating...
+module.ec2.aws_instance.dev_ec2[0]: Still creating... [10s elapsed]
+module.ec2.aws_instance.dev_ec2[1]: Still creating... [10s elapsed]
+module.ec2.aws_instance.dev_ec2[0]: Creation complete after 16s [id=i-09243cf69c709f459]
+module.ec2.aws_instance.dev_ec2[1]: Still creating... [20s elapsed]
+module.ec2.aws_instance.dev_ec2[1]: Creation complete after 22s [id=i-05875a471e8ba565d]
 
-──────────────────────────────────────────────────────────────────────────────────────────────
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 
-Changes to Outputs:
-- instance_ip = "16.52.72.254" -> null
-~ public_ip   = "16.52.72.254" -> ""
-
-
-terraform apply
-
-aws_instance.dev_ec2: Refreshing state... [id=i-0b0d582fbffb1c04b]
-
-Note: Objects have changed outside of Terraform
-
-Terraform detected the following changes made outside of Terraform since the last "terraform
-apply" which may have affected this plan:
-
-# aws_instance.dev_ec2 has changed
-~ resource "aws_instance" "dev_ec2" {
-    id                                   = "i-0b0d582fbffb1c04b"
-        - public_ip                            = "16.52.72.254" -> null
-        tags                                 = {
-            "Name" = "test-server-4"
-                "env"  = "dev"
-        }
-# (37 unchanged attributes hidden)
-
-# (8 unchanged blocks hidden)
-}
-
-
-Unless you have made equivalent changes to your configuration, or ignored the relevant
-attributes using ignore_changes, the following plan may include actions to undo or respond to
-these changes.
-
-──────────────────────────────────────────────────────────────────────────────────────────────
-
-Changes to Outputs:
-- instance_ip = "16.52.72.254" -> null
-~ public_ip   = "16.52.72.254" -> ""
-
-You can apply this plan to save these new output values to the Terraform state, without
-changing any real infrastructure.
-
-Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
-
-Outputs:
-
-instance_id = "i-0b0d582fbffb1c04b"
-public_ip = "15.223.54.139"
 ```
 
 ### Ansible
 ```
-~/Project/aws-ec2-utils$bash scripts/gen_inventory.sh 
-[OK] Inventory generated at ansible/inventory.ini
+$ ansible-playbook -i ansible/inventory.ini ansible/playbook.yaml
 
-ansible-playbook -i ansible/inventory.ini ansible/playbook.yaml
 
 PLAY [Configure EC2 instance] *************************************************
 
-TASK [Gathering Facts] ********************************************************
+TASK [Gathering Facts] *************************************************
     ok: [15.223.54.139]
 
-    TASK [Update apt packages (for Ubuntu) or yum (Amazon Linux)] *************
-    ok: [15.223.54.139]
+TASK [Update apt packages (for Ubuntu) or yum (Amazon Linux)] *************
+ok: [15.223.54.139]
 
-    TASK [Install base packages] **********************************************
-    ok: [15.223.54.139]
+TASK [Install base packages] **********************************************
+ok: [15.223.54.139]
 
-    TASK [Copy setup script (optional)] ***************************************
-    changed: [15.223.54.139]
+TASK [Copy setup script (optional)] ***************************************
+changed: [15.223.54.139]
 
-    TASK [Run setup script] ***************************************************
-    fatal: [15.223.54.139]: FAILED! => 
-    {"changed": true, "cmd": "/tmp/setup.sh", "delta": "0:00:00.951257", 
-    "end": "2025-07-10 20:05:45.470343", "msg": "non-zero return code", 
-    PLAY RECAP ****************************************************************
-    15.223.54.139 : ok=4    changed=1    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+TASK [Run setup script] *************************************************
+fatal: [15.223.54.139]: FAILED! => 
+{"changed": true, "cmd": "/tmp/setup.sh", "delta": "0:00:00.951257", 
+"end": "2025-07-10 20:05:45.470343", "msg": "non-zero return code", }
+
+PLAY RECAP **************************************************
+15.223.54.139 : ok=4    changed=1    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
 ```
 
 ### Python CLI
-```
-1. No argument is provided.
 
+1. No argument
+
+```bash
 $ ec2-start
 
 usage: ec2-start [-h] --region REGION [--tag-key TAG_KEY] [--tag-value TAG_VALUE] [--dry-run] [--log-file LOG_FILE] [--verbose] [--state STATE] [--min-uptime-hours MIN_UPTIME_HOURS]
 ec2-start: error: the following arguments are required: --region
+```
 
-2. Proper arguments are provided.
+2. With arguments
 
+```bash
 $ ec2-start --region ca-central-1 --tag-key env --tag-value dev --log-file start.log --verbose
 
 cat start.log
 
-2025-07-09 16:03:37,914 - DEBUG - Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
-2025-07-09 16:03:37,915 - DEBUG - Changing event name from before-call.apigateway to before-call.api-gateway
-2025-07-09 16:03:37,916 - DEBUG - Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
-...........
-.......
-.....
-2025-07-09 16:03:39,062 - DEBUG - Event needs-retry.ec2.StartInstances: calling handler <botocore.retryhandler.RetryHandler object at 0x7f9528e6e0a0>
 2025-07-09 16:03:39,062 - DEBUG - No retry needed.
 2025-07-09 16:03:39,063 - INFO - Started ['i-062d074hjk3jk95dbxxx3e']
+```
 
 3. Checking the current status of the group of EC2 instances.
 
+```bash
 ~/Project/aws-ec2-utils$python3 ec2_metadata.py --region ca-central-1
 INFO: Found credentials in shared credentials file: ~/.aws/credentials
-[PENDING] i-06adfewb3e- {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}
-[STOPPED] i-0a18601fd7- {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}
-[STOPPED] i-0fccfcaa97- {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}
-[PENDING] i-0b0d51c04b- {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}
 ```

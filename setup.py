@@ -11,6 +11,8 @@ setup(
     entry_points={
         "console_scripts": [
             "ec2-start=ec2_utils.ec2_start:start_ec2_instances",
+            "ec2-stop=ec2_utils.ec2_shutdown:stop_instances",
+            "ec2-status=ec2_utils.ec2_metadata:get_ec2_metadata",
             ]
         },
     python_requires=">=3.8",
