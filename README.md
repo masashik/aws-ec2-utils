@@ -1,4 +1,5 @@
-# ![CI](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)IaC development infrastructure provisioning in Cloud
+# IaC development infrastructure provisioning in Cloud
+![CI](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)
 
 ## A problem to solve
 
