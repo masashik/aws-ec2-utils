@@ -1,13 +1,49 @@
 # IaC development infrastructure provisioning in Cloud
 ![CI](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)
 
-## A problem to solve
+## Problems
 
-Infrastructure as Code (IaC) - simplifying setting up development infrastructure with EC2, OpenTofu, Ansible, and Python CLI with Boto3 AWS SDK. Running EC2 servers ready accept any application deployment for experiment.
+Provisioning an entire cloud infrastructure — including virtual servers, networking, routing tables, and internet gateways — is often too much overhead for developers who just want to experiment. Tasks like configuring subnets, setting up security groups, and attaching instances to public networks can be time-consuming and error-prone.
 
-## Architecture of provisioned AWS-EC2-Utils
+Even after deployment, many developers struggle to maintain their experimental environments. When infrastructure enters an unhealthy or inconsistent state, it can disrupt their development flow. Without proper monitoring or remediation, these issues can cause delays, confusion, or unexpected failures.
 
+To support productive experimentation, it’s critical to monitor the health of the development infrastructure — and ideally, implement automated self-healing mechanisms to resolve common issues without manual intervention.
+
+Additionally, inconsistencies in development environments across team members can lead to compatibility problems when sharing code or deploying to new instances. A standardized, reproducible setup ensures smoother collaboration and fewer surprises.
+
+## The solution
+
+This project provides an end-to-end Infrastructure as Code (IaC) setup for experimental cloud development environments using OpenTofu, Ansible, and Python (with Boto3) — all orchestrated with GitHub Actions for continuous automation.
+
+## Automated EC2 Infrastructure Provisioning and Configuration Pipeline
 ![Image](https://github.com/user-attachments/assets/9abcae41-3b1c-4663-a9d5-e3e9e6412edc)
+
+It provisions a complete AWS environment:
+
+- Custom VPC, subnets, route tables, and internet gateway
+- Multiple EC2 instances deployed with consistent configurations
+- Ansible roles to configure and update apps (e.g., NGINX, web apps)
+
+In addition to provisioning, the project introduces **automated infrastructure maintenance**, including:
+
+- **Health checks** on all EC2 instances using `healthcheck.py`
+- **GitHub Actions cron job** (every 15 minutes) to trigger
+- `workflow_orchestrator.py`: orchestrates the health check and remediation process
+- `llm_consult.py`: consults a local LLM (Ollama) to interpret issues
+- `apply_remediation.py`: takes automated action like restarting servers via restart_server() if problems are persistent
+
+## Automated EC2 Monitoring & Self-Healing Workflow
+![Image](https://github.com/user-attachments/assets/1b430fa8-2335-4223-810b-c84c55fed9ff)
+
+This ensures:
+- Less manual maintenance during development
+- Immediate resolution of common EC2 issues
+- Consistent infrastructure state for all developers
+- Seamless environment resets for faster experimentation
+
+Developers can focus on building, testing, and iterating — while the platform takes care of provisioning, monitoring, and healing itself. 
+
+
 
 ## Features
  - Fully coded and automated development infrastructure provisioning from scratch with OpenTofu.
@@ -17,14 +53,21 @@ Infrastructure as Code (IaC) - simplifying setting up development infrastructure
  - CI enabled with auto syntax checking and testing when new commits made with GitHub Actions.
  - Containerization to isolate runtime dependency.
  - Auto-generating host inventory.
+ - Auto-health check of EC2 instsances and with LLM consulting. necessary ansible playbook will be executed to remediate
+ - Auto-shutdown for idling EC2 instances every 6 hours
+ - CI/CD enabled for syntax checking and testing the script when a python script is checked-in by infrastructure engineers for any update.
 
 ## A role of each tool
- - OpenTofu
+- OpenTofu
     - Provisioning entire development infrastructure in AWS with EC2 instances.
- - Ansible
+- Ansible
     - Configuration management of each EC2 instance installing necessary toolchain and imperative and incremental updates.
- - Python CLI
+- Python CLI
     - Controlling on EC2 instances like start, shutdown, terminate, and status-checking of EC2 instances.
+- GitHub Actions
+    - Daemon to perform periodical status-checking of EC2 instances.
+- LLM (Ollama)
+    - LLM to gather EC2 instances status report and provisioned infrastructure states and determine the remediation approach.
 
 ## How-to-setup
 ### 1. Install provisioning tool - OpenTofu
