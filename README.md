@@ -16,7 +16,7 @@ Additionally, inconsistencies in development environments across team members ca
 This project provides an end-to-end Infrastructure as Code (IaC) setup for experimental cloud development environments using OpenTofu, Ansible, and Python (with Boto3) — all orchestrated with GitHub Actions for continuous automation.
 
 ## Automated EC2 Infrastructure Provisioning and Configuration Pipeline
-![Image](https://github.com/user-attachments/assets/9abcae41-3b1c-4663-a9d5-e3e9e6412edc)
+![Image](https://github.com/user-attachments/assets/401ebe1e-abb1-47fc-9dd4-dce1138d7506)
 
 It provisions a complete AWS environment:
 
