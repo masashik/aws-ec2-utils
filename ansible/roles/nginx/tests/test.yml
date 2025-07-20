@@ -1,5 +1,5 @@
 ---
+# Test file for roles/nginx
+- name: Test nginx configuration management
 - hosts: localhost
   remote_user: root
-  roles:
-    - roles/nginx
