@@ -216,3 +216,4 @@ terraform.tfvars
 terraform/terraform.tfvars.backup
 
 .DS_Store
+*.drawio
