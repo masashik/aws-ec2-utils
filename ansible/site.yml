@@ -1,3 +1,4 @@
+---
 - name: Configure EC2 instance
   hosts: dev
   become: true
