@@ -1,5 +1,5 @@
 ---
 # test file for roles/common
 - name: Test common configuration management
-- hosts: localhost
+  hosts: localhost
   remote_user: root
