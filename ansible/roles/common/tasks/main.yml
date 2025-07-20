@@ -12,7 +12,7 @@
   when: ansible_os_family == "Debian"
 
 - name: Install base packages
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:
       - git
       - python3
