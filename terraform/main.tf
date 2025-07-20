@@ -7,13 +7,13 @@ module "vpc" {
 }
 
 module "ec2" {
-  source                = "./modules/ec2"
-  instance_count        = var.instance_count
-  ami                   = var.ami
-  instance_type         = var.instance_type
-  key_name              = var.key_name
+  source                 = "./modules/ec2"
+  instance_count         = var.instance_count
+  ami                    = var.ami
+  instance_type          = var.instance_type
+  key_name               = var.key_name
   vpc_security_group_ids = [module.vpc.dev_sg_id]
-  subnet_id             = module.vpc.public_subnet_id
+  subnet_id              = module.vpc.public_subnet_id
 }
 
 #module "ec2" {
