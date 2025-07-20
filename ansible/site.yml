@@ -1,6 +1,7 @@
+---
 - name: Configure EC2 instance
   hosts: dev
-  become: yes
+  become: true
   roles:
     - common
     - nginx

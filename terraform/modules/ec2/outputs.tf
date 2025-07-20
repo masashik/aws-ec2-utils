@@ -6,9 +6,9 @@
 #}
 output "instance_ids" {
   description = "IDs of all EC2 instances"
-  value = [for instance in aws_instance.dev_ec2 : instance.id]
+  value       = [for instance in aws_instance.dev_ec2 : instance.id]
 }
 output "instance_ips" {
   description = "Public IPs of all EC2 instances"
-  value = [for instance in aws_instance.dev_ec2 : instance.public_ip]
+  value       = [for instance in aws_instance.dev_ec2 : instance.public_ip]
 }
