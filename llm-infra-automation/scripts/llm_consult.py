@@ -1,5 +1,4 @@
 import requests
-import time
 
 
 def ask_llm_for_action(prompt, use_openai=False, api_key=None):
@@ -21,7 +20,7 @@ def ask_llm_for_action(prompt, use_openai=False, api_key=None):
         return response.choices[0].message["content"]
     else:
         response = requests.post(
-            "http://localhost:11434/api/generate",
+            OLLAMA_API_URL,
             json={
                 "model": "llama3.1",
                 "prompt": f"{prompt}\n\n{instruction}",
@@ -32,6 +31,6 @@ def ask_llm_for_action(prompt, use_openai=False, api_key=None):
         return response.json().get("response", "").strip()
 
 
-if __name__ == "__main__":
-    example_prompt = "EC2 instance is unreachable and returns no HTTP response on port 80."
-    print(ask_llm(example_prompt))
+# if __name__ == "__main__":
+#     example_prompt = "EC2 instance is unreachable and returns no HTTP response on port 80."
+#     print(ask_llm(example_prompt))

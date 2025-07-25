@@ -3,6 +3,7 @@
 import boto3
 import datetime
 
+
 def check_ec2_health(region="ca-central-1"):
     ec2 = boto3.client("ec2", region_name=region)
     cloudwatch = boto3.client("cloudwatch", region_name=region)
