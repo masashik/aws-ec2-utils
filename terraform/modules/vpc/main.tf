@@ -42,12 +42,19 @@ resource "aws_route_table_association" "public_subnet" {
 
 resource "aws_security_group" "dev_sg" {
   name        = "${var.name_prefix}-sg"
-  description = "Allow SSH inbound"
+  description = "Allow SSH and HTTP inbound"
   vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
