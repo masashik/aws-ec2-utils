@@ -1,30 +1,41 @@
+# healthcheck.py
+
 import boto3
-import requests
+import datetime
 
+def check_ec2_health(region="ca-central-1"):
+    ec2 = boto3.client("ec2", region_name=region)
+    cloudwatch = boto3.client("cloudwatch", region_name=region)
 
-def check_ec2_health():
-    ec2 = boto3.client('ec2')
     response = ec2.describe_instance_status(IncludeAllInstances=True)
-    unhealthy_instances = []
+    results = []
 
-    for instance in response['InstanceStatuses']:
-        instance_id = instance['InstanceId']
-        status = instance['InstanceStatus']['Status']
-        system_status = instance['SystemStatus']['Status']
-        if status != 'ok' or system_status != 'ok':
-            unhealthy_instances.append(instance_id)
+    for instance in response["InstanceStatuses"]:
+        instance_id = instance["InstanceId"]
+        state = instance["InstanceState"]["Name"]
+        status = instance["InstanceStatus"]["Status"]
 
-    return unhealthy_instances
+        # CloudWatch CPU Utilization (last 10 minutes average)
+        end = datetime.datetime.utcnow()
+        start = end - datetime.timedelta(minutes=10)
 
+        metrics = cloudwatch.get_metric_statistics(
+            Namespace="AWS/EC2",
+            MetricName="CPUUtilization",
+            Dimensions=[{"Name": "InstanceId", "Value": instance_id}],
+            StartTime=start,
+            EndTime=end,
+            Period=300,
+            Statistics=["Average"]
+        )
 
-def check_http_service(ip, port=80):
-    try:
-        res = requests.get(f"http://{ip}:{port}", timeout=5)
-        return res.status_code
-    except requests.RequestException:
-        return None
+        avg_cpu = metrics["Datapoints"][0]["Average"] if metrics["Datapoints"] else 0.0
 
+        results.append({
+            "instance_id": instance_id,
+            "state": state,
+            "status": status,
+            "avg_cpu": avg_cpu
+        })
 
-if __name__ == "__main__":
-    instances = check_ec2_health()
-    print("Unhealthy EC2 Instances:", instances)
+    return results

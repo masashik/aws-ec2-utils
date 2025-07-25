@@ -1,7 +1,16 @@
 import requests
+import time
 
 
-def ask_llm(prompt, use_openai=False, api_key=None):
+def ask_llm_for_action(prompt, use_openai=False, api_key=None):
+
+    instruction = "Just return the answer as restart or ignore only based on the provided prompt."
+    OLLAMA_API_URL = "http://localhost:11434/api/generate"
+
+    print("=======This is the prompt provided=======================")
+    print(prompt)
+    print("=========================================================")
+
     if use_openai:
         import openai
         openai.api_key = api_key
@@ -11,11 +20,15 @@ def ask_llm(prompt, use_openai=False, api_key=None):
         )
         return response.choices[0].message["content"]
     else:
-        response = requests.post("http://localhost:11434/api/generate", json={
-            "model": "llama2",
-            "prompt": prompt,
-            "stream": False
-        })
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": "llama3.1",
+                "prompt": f"{prompt}\n\n{instruction}",
+                "stream": False
+            },
+            timeout=60.0
+        )
         return response.json().get("response", "").strip()
 
 
