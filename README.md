@@ -3,34 +3,50 @@
 
 ## Problems
 
-Provisioning an entire cloud infrastructure — including virtual servers, networking, routing tables, and internet gateways — is often too much overhead for developers who just want to experiment. Tasks like configuring subnets, setting up security groups, and attaching instances to public networks can be time-consuming and error-prone.
-
-Even after deployment, many developers struggle to maintain their experimental environments. When infrastructure enters an unhealthy or inconsistent state, it can disrupt their development flow. Without proper monitoring or remediation, these issues can cause delays, confusion, or unexpected failures.
-
-To support productive experimentation, it’s critical to monitor the health of the development infrastructure — and ideally, implement automated self-healing mechanisms to resolve common issues without manual intervention.
-
-Additionally, inconsistencies in development environments across team members can lead to compatibility problems when sharing code or deploying to new instances. A standardized, reproducible setup ensures smoother collaboration and fewer surprises.
+Too much overhead for developers who just want to deploy new application to experiment:tasks like configuring subnets, setting up security groups, and attaching instances to public networks can be time-consuming and error-prone to provision an entire cloud infrastructure — including virtual servers, networking, routing tables, and internet gateways
+Even after deployment. Many developers struggle to maintain their experimental environments when infrastructure enters an unhealthy or inconsistent state, it can block their development flow.
 
 ## The solution
 
-This project provides an end-to-end Infrastructure as Code (IaC) setup for experimental cloud development environments using OpenTofu, Ansible, and Python (with Boto3) — all orchestrated with GitHub Actions for continuous automation.
+Ready made development environment setup. This project provides an end-to-end Infrastructure as Code (IaC) for experimental cloud development environments provisioning using OpenTofu, imperative configuration management with Ansible, and Python CLI (with Boto3 SDK)
 
-## Automated EC2 Infrastructure Provisioning and Configuration Pipeline
+- OpenTofu - provision the entire infrastructure and keep the state from terraform files.
+- Ansible - each or group of software component can be updated defined in inventory YAML files.
+- PythonCLI - This CLI directly access to EC2 for controlling the instances like start/stop/status/terminate.
+- Ollama (LLM inference) - Providing self-healing mechanisms to resolve common issues like triage too high and too low CPU utilization.
+
+## Prerequisite
+
+- Your AWS accout is created, and you need to download AWS API credentials to your machine.
+
+```bash
+~$cat ~/.aws/config 
+[default]
+region = ca-central-1
+output = json
+
+~$cat ~/.aws/credentials 
+[default]
+aws_access_key_id = YOUR_KEY_ID
+aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
+```
+
+## This is what you get after successful install, setup, and execution of provisioning scripts.
 ![Image](https://github.com/user-attachments/assets/401ebe1e-abb1-47fc-9dd4-dce1138d7506)
 
-It provisions a complete AWS environment:
+
+This is Automated EC2 Infrastructure Provisioning and Configuration Pipeline. It provisions a complete AWS environment:
 
 - Custom VPC, subnets, route tables, and internet gateway
 - Multiple EC2 instances deployed with consistent configurations
 - Ansible roles to configure and update apps (e.g., NGINX, web apps)
 
-In addition to provisioning, the project introduces **automated infrastructure maintenance**, including:
+ In addition to provisioning, the project introduces **automated infrastructure maintenance (This is still in progress)**, including:
 
-- **Health checks** on all EC2 instances using `healthcheck.py`
-- **GitHub Actions cron job** (every 15 minutes) to trigger
-- `workflow_orchestrator.py`: orchestrates the health check and remediation process
+- **GitHub Actions cron job** (every 15 minutes) to trigger `workflow_orchestrator.py`: orchestrates the health check and remediation process
+- `healthcheck.py` on all EC2 instances
 - `llm_consult.py`: consults a local LLM (Ollama) to interpret issues
-- `apply_remediation.py`: takes automated action like restarting servers via restart_server() if problems are persistent
+- `apply_remediation.py`: takes automated action like restarting servers if problems are persistent.
 
 ## Automated EC2 Monitoring & Self-Healing Workflow
 ![Image](https://github.com/user-attachments/assets/1b430fa8-2335-4223-810b-c84c55fed9ff)
@@ -40,10 +56,6 @@ This ensures:
 - Immediate resolution of common EC2 issues
 - Consistent infrastructure state for all developers
 - Seamless environment resets for faster experimentation
-
-Developers can focus on building, testing, and iterating — while the platform takes care of provisioning, monitoring, and healing itself. 
-
-
 
 ## Features
  - Fully coded and automated development infrastructure provisioning from scratch with OpenTofu.
