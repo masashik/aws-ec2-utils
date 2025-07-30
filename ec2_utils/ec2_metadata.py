@@ -4,8 +4,8 @@ import boto3
 from botocore.exceptions import ClientError
 import argparse
 import logging
-from ec2_utils.ec2_ops import get_ec2_instances
-from ec2_utils.filters import filter_instances
+from .ec2_ops import get_ec2_instances
+from .filters import filter_instances
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -56,7 +56,14 @@ def get_ec2_metadata():
 
     for i in instances:
         print(f"[{i['State'].upper()}] {i['InstanceId']}" +
-              "- {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}")
+              f" {i['Name']} ({i['Type']}) launched at {i['LaunchTime']}")
+
+    # I will leave these debug line to be commented out for future usage.
+    # import sys
+    # print("----------------------------------------------------")
+    # print(i)
+    # print("----------------------------------------------------")
+    # sys.stdout.flush()
 
 
 if __name__ == "__main__":

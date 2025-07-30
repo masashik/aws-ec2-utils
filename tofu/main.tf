@@ -60,12 +60,11 @@ provider "aws" {
 #output "instance_id" {
 #  value = module.c2.instance_id
 #}
-#
+
 #output "public_ip" {
-#  value = aws_instance.dev_ec2.public_ip
-#}
-#
-#output "instance_ip" {
-#    value = aws_instance.dev_ec2.public_ip
+#  value = module.ec2_instance.public_ip
 #}
 
+output "instance_ips" {
+  value = module.ec2.instance_ips
+}

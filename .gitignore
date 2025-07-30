@@ -206,7 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-erraform.tfvars
+terraform.tfvars
+
 # Terraform local files
 terraform/.terraform/
 terraform/terraform.tfstate
@@ -214,3 +215,14 @@ terraform/terraform.tfstate.backup
 terraform.tfvars
 .terraform.lock.hcl
 terraform/terraform.tfvars.backup
+
+.DS_Store
+*.drawio
+
+# Tofu local files
+tofu/.terraform/
+tofu/terraform.tfstate
+tofu/terraform.tfstate.backup
+tofu/terraform.tfvars.backup
+terraform.tfvars
+.terraform.lock.hcl

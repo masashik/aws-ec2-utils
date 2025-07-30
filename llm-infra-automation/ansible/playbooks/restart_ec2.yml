@@ -1,0 +1,8 @@
+---
+- name: Trigger EC2 instance restart via boto3 script
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Run Python reboot script
+      command: python3 /Users/masashi/Project/aws-ec2-utils/ec2_utils/ec2_reboot.py
