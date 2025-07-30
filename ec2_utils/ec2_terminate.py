@@ -2,9 +2,9 @@
 
 import argparse
 import logging
-from ec2_ops import get_ec2_instances, terminate_instances
-from filters import filter_instances
-from logging_config import setup_logging
+from .ec2_ops import get_ec2_instances, terminate_instances
+from .filters import filter_instances
+from .logging_config import setup_logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 # Shutdown all EC2 instances in a specified region filtered by provided key/value.
-def main():
+def terminate_ec2_instances():
 
     # import sys
     # logger.info("MAIN() IS RUNNING")
@@ -42,4 +42,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    terminate_ec2_instances()
