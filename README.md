@@ -18,6 +18,7 @@ Ready made development environment setup. This project provides an end-to-end In
 ## Prerequisite
 
 - Your AWS accout is created, and you need to download AWS API credentials to your machine.
+- Please export both of EC2 SSH Key and OpenAI API KEY if you have one. I will use OpenAI for production LLM processing, otherwise you can still use Ollama to host yourself and use it.
 
 ```bash
 ~$cat ~/.aws/config 
@@ -29,6 +30,9 @@ output = json
 [default]
 aws_access_key_id = YOUR_KEY_ID
 aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
+
+export AWS_EC2_SSH_KEY_NAME=this-is-your-ec2-instances-asymmetric-key.pem
+export OPENAI_API_KEY=this-is-your-API-key-obtained-from-platform-openai-com
 ```
 
 ## This is what you get after successful install, setup, and execution of provisioning scripts.
