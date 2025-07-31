@@ -108,7 +108,10 @@ tofu apply \
   -auto-approve
 ```
 
-> 💡 Note: Make sure the AMI ID is valid in your AWS region.
+> ⚠️ Note: Make sure the AMI ID is valid in your AWS region.
+>  This AMI (ami-0f9cb75652314425a) corresponds to Amazon Linux 2 in ca-central-1.
+> Please replace it with a valid AMI ID in your AWS region if needed.
+
 
 To tear down:
 ```bash
@@ -142,17 +145,43 @@ cd ..
 pip3 install -r requirements.txt
 pip3 install .
 ```
+> ⚠️ Note: The requirements include boto3, click, and other utility packages used by the Python CLI.
 
 Sample usage:
 ```bash
-ec2-start --region ca-central-1 --tag-key env --tag-value dev
+~$ ec2-start --region ca-central-1
+2025-07-30 18:38:07,920 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-30 18:38:09,177 - INFO - Started ['i-07ed02df9f569d9ec', 'i-06a6e170d5ce8bebd']
+
+~$ec2-stop --region ca-central-1
+2025-07-30 18:38:48,082 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-30 18:38:48,906 - INFO - Stopped ['i-07ed02df9f569d9ec', 'i-06a6e170d5ce8bebd']
+
+~$ ec2-remove --region ca-central-1
+2025-07-30 18:39:35,275 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+Terminating…
+2025-07-30 18:39:36,624 - INFO - Terminated ['i-07ed02df9f569d9ec', 'i-06a6e170d5ce8bebd']
+
+~$ ec2-status --region ca-central-1
+INFO: Found credentials in shared credentials file: ~/.aws/credentials
+[TERMINATED] i-07ed02df9f569d9ec dev-server (t2.micro) launched at 2025-07-30 22:38:09+00:00
+[TERMINATED] i-06a6e170d5ce8bebd dev-server (t2.micro) launched at 2025-07-30 22:38:09+00:00
+
+~$ ec2-remove (no region and tag is provided)
+usage: ec2-remove [-h] --region REGION [--tag-key TAG_KEY] [--tag-value TAG_VALUE] [--dry-run] [--log-file LOG_FILE] [--verbose]
+ec2-remove: error: the following arguments are required: --region
+
 ```
+> ⚠️ Note: The ec2-start and related commands are installed via setup.py using entry_points, making them available globally after installation.
+
 
 ---
 
 ## 🛡️ Self-Healing Workflow (Optional)
 
-This project includes a prototype of a self-healing automation system using GitHub Actions and local LLM inference (via Ollama):
+[This project](https://github.com/masashik/aws-ec2-utils/issues/29) includes a prototype of a self-healing automation system using GitHub Actions and local LLM inference (via Ollama):
+
+
 
 1. `workflow_orchestrator.py` runs every 15 minutes via cron.
 2. `healthcheck.py` assesses EC2 health status.
@@ -160,6 +189,8 @@ This project includes a prototype of a self-healing automation system using GitH
 4. `apply_remediation.py` performs actions (e.g., restarts).
 
 ![Self-Healing](https://github.com/user-attachments/assets/1b430fa8-2335-4223-810b-c84c55fed9ff)
+
+> ⚠️ Note: To use the self-healing features, ensure Ollama is installed locally and your model is available. More setup details will be provided in a future release.
 
 ---
 
