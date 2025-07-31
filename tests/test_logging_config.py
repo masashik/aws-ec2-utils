@@ -1,5 +1,6 @@
 import logging
 
+
 def setup_logging():
     logger = logging.getLogger("ec2_utils")
     logger.setLevel(logging.INFO)
