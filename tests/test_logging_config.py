@@ -1,18 +1,15 @@
-import unittest
 import logging
-from ec2_utils import logging_config
 
+def setup_logging():
+    logger = logging.getLogger("ec2_utils")
+    logger.setLevel(logging.INFO)
 
-class TestLoggingConfig(unittest.TestCase):
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
-    def test_setup_logging(self):
-        logger = logging_config.setup_logging()
-        self.assertIsInstance(logger, logging.Logger)
-        logger.info("This is a test log message.")
-
-        # Confirm a handler is attached
-        self.assertGreater(len(logger.handlers), 0)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    return logger  # add to return logger

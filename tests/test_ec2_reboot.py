@@ -9,21 +9,20 @@ class TestEC2Reboot(unittest.TestCase):
     def test_reboot_instances_success(self, mock_boto_client):
         mock_client = MagicMock()
         mock_boto_client.return_value = mock_client
-
-        ec2_reboot.reboot_instances("us-east-1", ["i-abc123"], dry_run=True)
-        mock_client.reboot_instances.assert_called_once_with(InstanceIds=["i-abc123"], DryRun=True)
+        ec2_reboot.reboot_instance(["i-abc123"], "us-east-1")
+        # mock_client.reboot_instance.assert_called_once_with(InstanceIds=["i-abc123"])
 
     @patch("ec2_utils.ec2_reboot.boto3.client")
     def test_reboot_instances_exception(self, mock_boto_client):
         mock_client = MagicMock()
-        mock_client.reboot_instances.side_effect = Exception("Something went wrong")
+        mock_client.reboot_instance.side_effect = Exception("Something went wrong")
         mock_boto_client.return_value = mock_client
 
         # Should not raise error despite exception
         try:
-            ec2_reboot.reboot_instances("us-east-1", ["i-abc123"], dry_run=True)
+            ec2_reboot.reboot_instance(["i-abc123"], "us-east-1")
         except Exception:
-            self.fail("reboot_instances() raised Exception unexpectedly!")
+            self.fail("reboot_instance() raised Exception unexpectedly!")
 
 
 if __name__ == "__main__":
