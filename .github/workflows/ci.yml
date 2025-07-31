@@ -53,4 +53,10 @@ jobs:
           pip install flake8 pytest pytest-cov
           flake8 .
           export PYTHONPATH=${{ github.workspace }}
-          pytest --cov
+          pytest --cov=ec2_utils --cov-report=xml --cov-report=term-missing
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true
