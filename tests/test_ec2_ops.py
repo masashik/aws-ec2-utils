@@ -36,5 +36,6 @@ class TestEC2Ops(unittest.TestCase):
         ec2_ops.stop_instances("us-west-1", ["i-abc123"], dry_run=True, retries=3)
         self.assertEqual(mock_client.stop_instances.call_count, 3)
 
+
 if __name__ == "__main__":
     unittest.main()

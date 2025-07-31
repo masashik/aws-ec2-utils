@@ -13,5 +13,6 @@ class TestLoggingConfig(unittest.TestCase):
         # Confirm a handler is attached
         self.assertGreater(len(logger.handlers), 0)
 
+
 if __name__ == "__main__":
     unittest.main()

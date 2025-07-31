@@ -25,5 +25,6 @@ class TestEC2Reboot(unittest.TestCase):
         except Exception:
             self.fail("reboot_instances() raised Exception unexpectedly!")
 
+
 if __name__ == "__main__":
     unittest.main()

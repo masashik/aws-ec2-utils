@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from ec2_utils import ec2_autoshutdown
 import datetime
 
+
 class TestEc2Autoshutdown(unittest.TestCase):
 
     @patch("boto3.resource")
@@ -56,6 +57,7 @@ class TestEc2Autoshutdown(unittest.TestCase):
 
         ec2_autoshutdown.shutdown_instances("us-east-1", [instance], "env", "dev", 30, dry_run=True)
         mock_ec2.stop_instances.assert_called_once_with(InstanceIds=["i-123"], DryRun=True)
+
 
 if __name__ == "__main__":
     unittest.main()

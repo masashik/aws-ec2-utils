@@ -24,5 +24,6 @@ class TestEC2Start(unittest.TestCase):
         except Exception:
             self.fail("start_instances() raised Exception unexpectedly!")
 
+
 if __name__ == "__main__":
     unittest.main()

@@ -30,5 +30,6 @@ class TestEc2Metadata(unittest.TestCase):
         self.assertEqual(result["instance-type"], "t2.micro")
         self.assertEqual(result["availability-zone"], "us-west-2a")
 
+
 if __name__ == "__main__":
     unittest.main()

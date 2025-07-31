@@ -36,5 +36,6 @@ class TestFilters(unittest.TestCase):
         result = filters.filter_instances(instances, "env", "dev")
         self.assertEqual(result, [])
 
+
 if __name__ == "__main__":
     unittest.main()
