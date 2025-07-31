@@ -50,7 +50,7 @@ jobs:
           python-version: '3.11'
       - run: |
           pip install -r requirements.txt
-          pip install flake8 pytest
+          pip install flake8 pytest pytest-cov
           flake8 .
           export PYTHONPATH=${{ github.workspace }}
-          pytest
+          pytest --cov
