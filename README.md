@@ -1,6 +1,9 @@
 # AWS EC2 Infrastructure Automation Toolkit
 
 ![CI Status](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)
+![GitHub release (latest by semver)](https://img.shields.io/github/v/release/masashik/aws-ec2-utils)
+![GitHub](https://img.shields.io/github/license/masashik/aws-ec2-utils)
+![GitHub issues](https://img.shields.io/github/issues/masashik/aws-ec2-utils)
 
 This project provides a fully automated infrastructure setup for experimental cloud environments using **OpenTofu**, **Ansible**, and a **Python-based CLI (Boto3)**. It is designed to eliminate the repetitive and error-prone process of manually provisioning and maintaining cloud infrastructure for testing and development.
 
