@@ -2,6 +2,7 @@ import unittest
 from ec2_utils import filters
 from datetime import datetime, timedelta, timezone
 
+
 class TestFilters(unittest.TestCase):
 
     def test_filter_instances_by_tag(self):
@@ -45,6 +46,7 @@ class TestFilters(unittest.TestCase):
         filtered = filters.filter_by_uptime(instances, min_hours=5)
         assert len(filtered) == 1
         assert filtered[0]["InstanceId"] == "i-old"
+
 
 if __name__ == "__main__":
     unittest.main()
