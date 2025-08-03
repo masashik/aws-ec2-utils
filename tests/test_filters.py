@@ -1,6 +1,6 @@
 import unittest
 from ec2_utils import filters
-
+from datetime import datetime, timedelta, timezone
 
 class TestFilters(unittest.TestCase):
 
@@ -36,6 +36,15 @@ class TestFilters(unittest.TestCase):
         result = filters.filter_instances(instances, "env", "dev")
         self.assertEqual(result, [])
 
+    def test_filter_by_uptime_excludes_new_instances(self):
+        now = datetime.now(timezone.utc)
+        instances = [
+            {"InstanceId": "i-new", "LaunchTime": now - timedelta(hours=1)},
+            {"InstanceId": "i-old", "LaunchTime": now - timedelta(hours=10)},
+        ]
+        filtered = filters.filter_by_uptime(instances, min_hours=5)
+        assert len(filtered) == 1
+        assert filtered[0]["InstanceId"] == "i-old"
 
 if __name__ == "__main__":
     unittest.main()

@@ -27,5 +27,6 @@ def filter_by_uptime(instances, min_hours):
     cutoff_time = datetime.now(timezone.utc) - timedelta(hours=min_hours)
     return [
         i for i in instances
-        if i.get("LaunchTime") and i["LaunchTime"] < cutoff_time
+        # This comparison is checking if LaunchTime is older than cutoff time.
+        if i.get("LaunchTime") and i["LaunchTime"] < cutoff_time 
     ]
