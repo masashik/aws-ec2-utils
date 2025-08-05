@@ -1,0 +1,25 @@
+- name: Pull postgres-db image
+  docker_image:
+    name: postgres:latest
+    source: pull
+
+- name: Run postgres-db container
+  docker_container:
+    name: java-web-data-postgres-db
+    image: postgres:latest
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "5432:5432"
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ostock_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - /opt/docker/init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - /opt/docker/data.sql:/docker-entrypoint-initdb.d/2-data.sql

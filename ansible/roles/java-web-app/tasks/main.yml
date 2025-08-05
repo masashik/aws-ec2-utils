@@ -1,0 +1,19 @@
+- name: Pull java-web-app image
+  docker_image:
+    name: masashica/java-data-postgres
+    source: pull
+
+- name: Run java-web-app container
+  docker_container:
+    name: java-data-postgres
+    image: masashica/java-data-postgres
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "8080:8080"
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-web-data-postgres-db:5432/ostock_dev
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    links:
+      - java-web-data-postgres-db

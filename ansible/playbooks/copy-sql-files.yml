@@ -1,0 +1,19 @@
+- name: Copy DB init files to EC2
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create target dir
+      file:
+        path: /opt/docker
+        state: directory
+        mode: '0755'
+
+    - name: Copy init.sql
+      copy:
+        src: ../files/init.sql
+        dest: /opt/docker/init.sql
+
+    - name: Copy data.sql
+      copy:
+        src: ../files/data.sql
+        dest: /opt/docker/data.sql

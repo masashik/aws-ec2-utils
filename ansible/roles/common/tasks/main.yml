@@ -20,13 +20,16 @@
     state: present
   when: ansible_os_family == "RedHat"
 
-- name: Copy setup script (optional)
-  ansible.builtin.copy:
-    src: files/setup.sh
-    dest: /tmp/setup.sh
-    mode: '0755'
+- name: Install Docker on Amazon Linux 2023
+  when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "2023"
+  block:
+    - name: Install Docker
+      dnf:
+        name: docker
+        state: present
 
-- name: Run setup script
-  ansible.builtin.command: /tmp/setup.sh
-  when: ansible_os_family == "RedHat"
-  changed_when: true
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
