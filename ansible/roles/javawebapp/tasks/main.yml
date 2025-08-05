@@ -1,3 +1,4 @@
+---
 - name: Pull java-web-app image
   community.docker.docker_image:
     name: masashica/java-data-postgres

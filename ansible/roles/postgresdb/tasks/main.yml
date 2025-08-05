@@ -1,3 +1,4 @@
+---
 - name: Pull postgres-db image
   community.docker.docker_image:
     name: postgres:latest

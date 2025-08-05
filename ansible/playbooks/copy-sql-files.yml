@@ -1,3 +1,4 @@
+---
 - name: Copy DB init files to EC2
   hosts: all
   become: true
