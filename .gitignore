@@ -226,3 +226,5 @@ tofu/terraform.tfstate.backup
 tofu/terraform.tfvars.backup
 terraform.tfvars
 .terraform.lock.hcl
+
+ansible/inventory.ini
