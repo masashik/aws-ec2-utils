@@ -6,7 +6,16 @@
 ![GitHub issues](https://img.shields.io/github/issues/masashik/aws-ec2-utils)
 [![codecov](https://codecov.io/gh/masashik/aws-ec2-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/masashik/aws-ec2-utils)
 
-This project provides a fully automated infrastructure setup for experimental cloud environments using **OpenTofu**, **Ansible**, and a **Python-based CLI (Boto3)**. It is designed to eliminate the repetitive and error-prone process of manually provisioning and maintaining cloud infrastructure for testing and development.
+This project enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS EC2**. By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
+
+With this setup, users can
+
+- Provision multiple EC2 instances on-demand using a single Terraform command.
+- Deploy the same containerized Java REST API to multiple EC2 nodes using Ansible.
+- Access the deployed microservices via public IPs and verify database-backed API responses from each server.
+- Instantly start, stop, or destroy environments with a simple CLI command.
+- ✅ Verified: All EC2 instances successfully return PostgreSQL data via REST API calls. Infrastructure is ready for Java-based backend development experiments.
+
 
 ---
 
@@ -17,10 +26,12 @@ Many developers face friction when experimenting in the cloud:
 - Provisioning VPCs, subnets, route tables, and EC2 instances is time-consuming.
 - Environments frequently become inconsistent or unhealthy, interrupting work.
 - Maintaining SSH keys, inventory files, and security group settings adds complexity.
+- Scaling out testing environments is slow and fragile.
+- Developers lack reproducible sandboxes for backend experiments.
 
 ---
 
-## ✅ Solution Overview
+## Solution Overview
 
 This toolkit automates the full lifecycle:
 
@@ -28,11 +39,60 @@ This toolkit automates the full lifecycle:
 - **Ansible**: App-level configuration management across EC2 hosts.
 - **Python CLI (Boto3)**: Operational control (start, stop, terminate, status).
 - **Ollama LLM** (optional): Self-healing and automated troubleshooting via local inference.
-
----
+- **RESTful Java DB backed microservice**: A simple CRUD Java microservice and exposed DB data over REST endpoint.
+  - A zero-touch, reproducible dev environment for Java REST API development.
+  - Full lifecycle automation: from provisioning to deployment to operation.
+  - Support for infrastructure validation, CI testing, and optional self-healing workflows.
 
 ## 📐 Architecture
----<img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
+<img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
+
+## 🧩 Use Cases
+
+| Icon | Scenario | Description |
+|------|----------|-------------|
+| 🧪 | Backend Development Sandbox | Easily deploy a Java-based CRUD microservice with PostgreSQL on EC2 for prototyping and testing REST APIs. |
+| 🛠️ | DevOps Automation Practice | Hands-on experience integrating Terraform and Ansible to provision and configure scalable infrastructure. |
+| 🔁 | CI/CD Demonstration | Use GitHub Actions for automated linting, testing, and pipeline validation with Ansible and Python. |
+| 🧠 | LLM-Based Self-Healing Infrastructure | Simulate a self-healing architecture using LLMs (e.g., Ollama/OpenAI) for automated incident remediation. |
+| ☁️ | Cloud Infrastructure Learning | End-to-end reproducible AWS infrastructure including VPC, security groups, EC2, and IAM roles. |
+| 🔧 | Infrastructure as Code Showcase | Demonstrates clean IaC practices with modular Terraform and declarative Ansible playbooks. |
+| 🚀 | Scalable Microservice Deployment | Deploy containerized Java microservices and PostgreSQL DBs across multiple EC2 instances. |
+| 👨‍💻 | Job Portfolio Project | High-quality, production-grade DevOps project ready to present to employers for SRE/Platform roles. |
+
+## Samples
+
+```bash
+$ curl -X 'GET' 'http<EC2_PUBLIC_IP>:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62' -H 'accept: application/json' | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   729    0   729    0     0    579      0 --:--:--  0:00:01 --:--:--   579
+{
+  "licenseId": "f2a9c9d4-d2c0-44fa-97fe-724d77173c62",
+  "description": "Software Product",
+  "organizationId": "d898a142-de44-466c-8c88-9ceb2c2429d3",
+  "productName": "Ostock",
+  "licenseType": "complete",
+  "comment": "I AM DEV",
+  "_links": {
+    "self": {
+      "href": "http://<EC2_PUBLIC_IP>:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62"
+    },
+    "createLicense": {
+      "href": "http://<EC2_PUBLIC_IP>:8080/v1/organization/{organizationId}/license",
+      "templated": true
+    },
+    "updateLicense": {
+      "href": "http://<EC2_PUBLIC_IP>:8080/v1/organization/{organizationId}/license",
+      "templated": true
+    },
+    "deleteLicense": {
+      "href": "http://<EC2_PUBLIC_IP>:8080/v1/organization/{organizationId}/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62",
+      "templated": true
+    }
+  }
+}
+```
 
 ## ⚙️ Prerequisites
 
