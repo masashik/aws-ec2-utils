@@ -4,5 +4,5 @@
   become: true
   roles:
     - common
-    - postgres-db
-    - java-web-app
+    - postgresdb
+    - javawebapp

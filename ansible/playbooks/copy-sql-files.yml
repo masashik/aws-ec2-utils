@@ -1,19 +1,21 @@
 - name: Copy DB init files to EC2
   hosts: all
-  become: yes
+  become: true
   tasks:
     - name: Create target dir
-      file:
+      ansible.builtin.file:
         path: /opt/docker
         state: directory
         mode: '0755'
 
     - name: Copy init.sql
-      copy:
-        src: ../files/init.sql
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/sql/init.sql"
         dest: /opt/docker/init.sql
+        mode: '0644'  # Readable by all, writable by owner only
 
     - name: Copy data.sql
-      copy:
-        src: ../files/data.sql
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/sql/data.sql"
         dest: /opt/docker/data.sql
+        mode: '0644'  # Readable by all, writable by owner only
