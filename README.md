@@ -6,7 +6,9 @@
 ![GitHub issues](https://img.shields.io/github/issues/masashik/aws-ec2-utils)
 [![codecov](https://codecov.io/gh/masashik/aws-ec2-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/masashik/aws-ec2-utils)
 
-This project enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS EC2**. By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
+🚀 This project automates the provisioning and deployment of Java-based microservices on EC2 using Terraform, Ansible, Docker, and Python (boto3).
+
+It enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS EC2**. By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
 
 With this setup, users can
 
