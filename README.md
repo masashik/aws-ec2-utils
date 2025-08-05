@@ -32,10 +32,7 @@ This toolkit automates the full lifecycle:
 ---
 
 ## 📐 Architecture
-
-![Diagram](https://github.com/user-attachments/assets/401ebe1e-abb1-47fc-9dd4-dce1138d7506)
-
----
+---<img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
 
 ## ⚙️ Prerequisites
 
