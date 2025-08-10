@@ -44,3 +44,17 @@ variable "db_allocated_storage" {
   type    = number
   default = 20
 }
+
+variable "bastion_instance_type" {
+  default = "t3.micro"
+}
+
+variable "bastion_subnet_id" {
+  description = "Private subnet ID for bastion"
+  default     = null
+}
+
+variable "bastion_key_name" {
+  description = "Optional SSH key pair name"
+  default     = null
+}

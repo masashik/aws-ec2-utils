@@ -79,3 +79,77 @@ resource "aws_security_group_rule" "ecs_to_rds" {
   security_group_id        = module.security.rds_sg_id
   source_security_group_id = module.security.ecs_task_sg_id
 }
+
+# --- Bastion Security Group ---
+resource "aws_security_group" "bastion" {
+  name        = "${var.project}-bastion-sg"
+  description = "Bastion host SG"
+  vpc_id      = module.network.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group_rule" "allow_bastion_to_rds" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.bastion.id
+  security_group_id        = module.security.rds_sg_id
+}
+
+# --- IAM Role for SSM ---
+data "aws_iam_policy_document" "ec2_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "bastion_ssm" {
+  name               = "${var.project}-bastion-ssm-role"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
+}
+
+resource "aws_iam_role_policy_attachment" "bastion_ssm_attach" {
+  role       = aws_iam_role.bastion_ssm.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "bastion_ssm_profile" {
+  name = "${var.project}-bastion-ssm-profile"
+  role = aws_iam_role.bastion_ssm.name
+}
+
+# --- EC2 Instance ---
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+resource "aws_instance" "bastion" {
+  ami                         = data.aws_ami.amazon_linux_2.id
+  instance_type               = var.bastion_instance_type
+  subnet_id                   = coalesce(var.bastion_subnet_id, element(module.network.private_subnet_ids, 0))
+  vpc_security_group_ids      = [aws_security_group.bastion.id]
+  iam_instance_profile        = aws_iam_instance_profile.bastion_ssm_profile.name
+  associate_public_ip_address = false
+  key_name                    = var.bastion_key_name
+
+  tags = {
+    Name = "${var.project}-bastion"
+  }
+}
