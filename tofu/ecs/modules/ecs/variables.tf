@@ -1,0 +1,10 @@
+variable "project" { type = string }
+variable "cluster_name" { type = string }
+variable "private_subnet_ids" { type = list(string) }
+variable "ecs_task_sg_id" { type = string }
+variable "alb_target_group_arn" { type = string }
+variable "container_image" { type = string }
+variable "container_port" { type = number }
+variable "desired_count" { type = number }
+variable "assign_public_ip" { type = bool }
+variable "db_secret_arn" { type = string }
