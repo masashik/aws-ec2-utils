@@ -8,3 +8,4 @@ variable "container_port" { type = number }
 variable "desired_count" { type = number }
 variable "assign_public_ip" { type = bool }
 variable "db_secret_arn" { type = string }
+variable "aws_region" { type = string }

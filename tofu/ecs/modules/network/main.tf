@@ -2,7 +2,7 @@ resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  tags = { Name = "${var.project}-vpc" }
+  tags                 = { Name = "${var.project}-vpc" }
 }
 
 resource "aws_internet_gateway" "this" {
@@ -12,12 +12,12 @@ resource "aws_internet_gateway" "this" {
 
 # Public subnets
 resource "aws_subnet" "public" {
-  for_each = { for idx, cidr in var.public_subnet_cidrs : idx => cidr }
+  for_each                = { for idx, cidr in var.public_subnet_cidrs : idx => cidr }
   vpc_id                  = aws_vpc.this.id
   cidr_block              = each.value
   availability_zone       = var.azs[tonumber(each.key)]
   map_public_ip_on_launch = true
-  tags = { Name = "${var.project}-public-${each.key}" }
+  tags                    = { Name = "${var.project}-public-${each.key}" }
 }
 
 resource "aws_route_table" "public" {
@@ -48,12 +48,12 @@ resource "aws_nat_gateway" "this" {
 
 # Private subnets
 resource "aws_subnet" "private" {
-  for_each            = { for idx, cidr in var.private_subnet_cidrs : idx => cidr }
-  vpc_id              = aws_vpc.this.id
-  cidr_block          = each.value
-  availability_zone   = var.azs[tonumber(each.key)]
+  for_each                = { for idx, cidr in var.private_subnet_cidrs : idx => cidr }
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = each.value
+  availability_zone       = var.azs[tonumber(each.key)]
   map_public_ip_on_launch = false
-  tags = { Name = "${var.project}-private-${each.key}" }
+  tags                    = { Name = "${var.project}-private-${each.key}" }
 }
 
 resource "aws_route_table" "private" {

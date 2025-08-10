@@ -219,12 +219,18 @@ terraform/terraform.tfvars.backup
 .DS_Store
 *.drawio
 
-# Tofu local files
+# Tofu local files for EC2
 tofu/ec2/.terraform/
 tofu/ec2/terraform.tfstate
 tofu/ec2/terraform.tfstate.backup
 tofu/ec2/terraform.tfvars.backup
 terraform.tfvars
 .terraform.lock.hcl
+
+# Tofu local files for ECS
+tofu/ecs/.terraform/
+tofu/ecs/terraform.tfstate
+tofu/ecs/terraform.tfstate.backup
+tofu/ecs/terraform.tfvars.backup
 
 ansible/inventory.ini

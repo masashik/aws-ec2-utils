@@ -16,7 +16,10 @@ resource "aws_iam_role" "task_execution" {
 data "aws_iam_policy_document" "ecs_tasks_assume" {
   statement {
     actions = ["sts:AssumeRole"]
-    principals { type = "Service" identifiers = ["ecs-tasks.amazonaws.com"] }
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
   }
 }
 
@@ -32,7 +35,7 @@ resource "aws_iam_role" "task" {
 
 # Allow reading the DB secret
 resource "aws_iam_policy" "read_secret" {
-  name   = "${var.project}-read-secret"
+  name = "${var.project}-read-secret"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -45,6 +48,12 @@ resource "aws_iam_policy" "read_secret" {
 
 resource "aws_iam_role_policy_attachment" "task_read_secret" {
   role       = aws_iam_role.task.name
+  policy_arn = aws_iam_policy.read_secret.arn
+}
+
+# Allow reading the DB secret for task execution role
+resource "aws_iam_role_policy_attachment" "execution_read_secret" {
+  role       = aws_iam_role.task_execution.name
   policy_arn = aws_iam_policy.read_secret.arn
 }
 
@@ -72,16 +81,17 @@ resource "aws_ecs_task_definition" "this" {
         logDriver = "awslogs",
         options = {
           awslogs-group         = aws_cloudwatch_log_group.this.name,
-          awslogs-region        = var.project == "" ? "" : null,
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = "app"
+          awslogs-create-group  = "true"
         }
       },
       secrets = [
-        { name = "DB_SECRET_JSON", valueFrom = var.db_secret_arn }
+        { name = "SPRING_DATASOURCE_URL", valueFrom = "${var.db_secret_arn}:url::" },
+        { name = "SPRING_DATASOURCE_USERNAME", valueFrom = "${var.db_secret_arn}:username::" },
+        { name = "SPRING_DATASOURCE_PASSWORD", valueFrom = "${var.db_secret_arn}:password::" }
       ],
-      environment = [
-        { name = "SPRING_DATASOURCE_URL", value = "jdbc:postgresql://${jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.db.secret_string)).host}:5432/${jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.db.secret_string)).dbname}" }
-      ]
+      environment = []
     }
   ])
 }

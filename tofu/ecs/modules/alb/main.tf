@@ -1,4 +1,4 @@
-ource "aws_lb" "this" {
+resource "aws_lb" "this" {
   name               = "${var.project}-alb"
   load_balancer_type = "application"
   security_groups    = [var.alb_sg_id]
