@@ -220,10 +220,10 @@ terraform/terraform.tfvars.backup
 *.drawio
 
 # Tofu local files
-tofu/.terraform/
-tofu/terraform.tfstate
-tofu/terraform.tfstate.backup
-tofu/terraform.tfvars.backup
+tofu/ec2/.terraform/
+tofu/ec2/terraform.tfstate
+tofu/ec2/terraform.tfstate.backup
+tofu/ec2/terraform.tfvars.backup
 terraform.tfvars
 .terraform.lock.hcl
 
