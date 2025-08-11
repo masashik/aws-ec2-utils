@@ -1,4 +1,4 @@
-# AWS EC2 Infrastructure Automation Toolkit
+# AWS EC2/ECS Infrastructure Automation Toolkit
 
 ![CI Status](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)
 ![GitHub release (latest by semver)](https://img.shields.io/github/v/release/masashik/aws-ec2-utils)
@@ -6,9 +6,15 @@
 ![GitHub issues](https://img.shields.io/github/issues/masashik/aws-ec2-utils)
 [![codecov](https://codecov.io/gh/masashik/aws-ec2-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/masashik/aws-ec2-utils)
 
-🚀 This project automates the provisioning and deployment of Java-based microservices on EC2 using Terraform, Ansible, Docker, and Python (boto3).
+Automated provisioning and deployment of Java-based microservices on AWS ECS (Fargate) or EC2 — user-selectable at deploy time.
 
-It enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS EC2**. By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
+| Mode              | Best For                                   | Infra                                            | Scaling   | Cost                    | Notes                 |
+| ----------------- | ------------------------------------------ | ------------------------------------------------ | --------- | ----------------------- | --------------------- |
+| **EC2**           | Low-level VM management & SSH experiments  | EC2 instances                          | Manual    | Pay for instance uptime | Full OS control       |
+| **ECS (Fargate)** | Modern, serverless container orchestration | ECS Cluster, Service, Task Definitions, ALB, RDS, Secret Manager | Automatic | Pay per task runtime    | No server maintenance |
+
+It enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS ECS and EC2**. 
+By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
 
 With this setup, users can
 
@@ -45,9 +51,14 @@ This toolkit automates the full lifecycle:
   - A zero-touch, reproducible dev environment for Java REST API development.
   - Full lifecycle automation: from provisioning to deployment to operation.
   - Support for infrastructure validation, CI testing, and optional self-healing workflows.
+- **ECS Fargate**: Terraform provisions ECS cluster, services, ALB, and RDS. Docker images are pushed to ECR, then deployed without managing EC2 hosts.
 
-## 📐 Architecture
+## 📐 Architecture (EC2)
 <img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
+
+## 📐 Architecture (ECS)
+
+<img width="964" height="675" alt="aws-ecs-utils-arch" src="https://github.com/user-attachments/assets/534e1e98-a6b5-4190-85e0-996880594531" />
 
 ## 🧩 Use Cases
 
@@ -157,11 +168,15 @@ Ensure key files are present:
 - `setup.py`, `requirements.txt`
 
 ---
-
-### Step 2: Provision Infrastructure with OpenTofu
-
+### Step 2: Choose Provision Infrastructure in EC2 or ECS
 ```bash
 cd tofu
+ls
+ec2 ecs
+```
+For ec2,
+```
+cd ec2
 tofu init
 tofu apply \
   -var="ami=ami-0f9cb75652314425a" \
@@ -169,6 +184,13 @@ tofu apply \
   -var="instance_type=t2.micro" \
   -var="key_name=your-key-name" \
   -auto-approve
+```
+
+For ecs,
+```
+cd ecs
+tofu init
+tofu apply
 ```
 
 > ⚠️ Note: Make sure the AMI ID is valid in your AWS region.
@@ -183,7 +205,7 @@ tofu destroy
 
 ---
 
-### Step 3: Generate Ansible Inventory
+### Step 3: Generate Ansible Inventory (Only for EC2)
 ```bash
 cd ../scripts
 bash gen_inventory.sh
@@ -192,7 +214,7 @@ cat ../ansible/inventory.ini
 
 ---
 
-### Step 4: Run Configuration with Ansible
+### Step 4: Run Configuration with Ansible (Only for EC2)
 ```bash
 cd ../ansible
 ansible-playbook -i inventory.ini site.yaml
@@ -200,7 +222,7 @@ ansible-playbook -i inventory.ini site.yaml
 
 ---
 
-### Step 5: Use the CLI to Manage EC2 Instances
+### Step 5: Use the CLI to Manage EC2 Instances (Only for EC2)
 
 Install dependencies and CLI:
 ```bash
