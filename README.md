@@ -288,12 +288,17 @@ ec2-remove: error: the following arguments are required: --region
 - Auto-shutdown idle EC2s via GitHub Actions (default: 6h uptime)
 - Inventory auto-generation on provisioning
 - CI pipeline with lint/test checks via GitHub Actions
+- Terraform-provisioned ECS Cluster, ALB, and RDS
+- ECR integration for container image deployment
+- Serverless scaling with Fargate — no instance maintenance
+
 
 ---
 
 ## 📦 Version
 
 **v1.0.0 – Stable**
+**v1.1.0: ECS Fargate deployment with Docker & GitHub Actions**
 
 ---
 
@@ -310,6 +315,5 @@ MIT — see [LICENSE](./LICENSE)
 ---
 
 ## 🛠️ Upcoming Features
-- v1.1.0: ECS Fargate deployment with Docker & GitHub Actions
 - v1.2.0: Kubernetes-based deployment with EKS & LLM inference
 - Follow the repo for updates!
