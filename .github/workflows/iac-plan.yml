@@ -1,3 +1,26 @@
+name: IaC Plan (safe)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - 'feature/**'
+      - 'issue-*'
+    paths:
+      - 'tofu/**'
+      - '.github/workflows/iac-plan.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'tofu/**'
+      - '.github/workflows/iac-plan.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: iac-plan-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   plan-ec2:
     runs-on: ubuntu-latest
