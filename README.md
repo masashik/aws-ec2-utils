@@ -154,6 +154,49 @@ brew update && brew install python3
 ```
 
 ---
+## Try in 5 minutes for ECS (EC2 follows)
+
+#### 0) Prereqs: AWS CLI is authenticated; region is set (e.g., ca-central-1)
+
+#### 1) Clone & enter
+```
+git clone https://github.com/masashik/aws-ec2-utils
+cd aws-ec2-utils
+```
+
+#### 2) Initialize ECS IaC (S3+DynamoDB backend, if configured)
+```
+cd tofu/ecs
+tofu init -reconfigure -backend-config=../backend/ecs.hcl
+```
+
+#### 3) Plan & apply
+```
+tofu plan
+tofu apply -auto-approve
+```
+
+Verify it’s live:
+
+#### Get an ALB DNS name (pick the first if multiple)
+```
+ALB_DNS=$(aws elbv2 describe-load-balancers --query 'LoadBalancers[0].DNSName' --output text)
+echo "ALB: http://$ALB_DNS"
+```
+
+#### Target health should show "healthy"
+```
+TG_ARN=$(aws elbv2 describe-target-groups --query 'TargetGroups[0].TargetGroupArn' --output text)
+aws elbv2 describe-target-health --target-group-arn "$TG_ARN" --query 'TargetHealthDescriptions[].TargetHealth.State'
+```
+
+#### ECS service rollout should be COMPLETED
+```
+CLUSTER_ARN=$(aws ecs list-clusters --query 'clusterArns[0]' --output text)
+SERVICE_ARN=$(aws ecs list-services --cluster "$CLUSTER_ARN" --query 'serviceArns[0]' --output text)
+aws ecs describe-services --cluster "$CLUSTER_ARN" --services "$SERVICE_ARN" \
+  --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}'
+```
 
 ## 🚀 Quick Start
 
@@ -202,6 +245,33 @@ To tear down:
 ```bash
 tofu destroy
 ```
+
+## 💸 Cost & Cleanup
+
+AWS resources incur charges while they exist. Notable cost drivers in this project include ALB (billed hourly + LCUs), RDS (Postgres), ECS tasks, ECR storage, Secrets Manager, and S3. ALB cannot be “stopped”—only deleted—so don’t leave stacks running unintentionally.
+
+Tear down ECS stack:
+```
+cd tofu/ecs
+tofu destroy -auto-approve
+```
+If you also created the EC2 stack:
+```
+cd ../ecs
+tofu destroy -auto-approve
+```
+Optional cleanups:
+
+```
+# Remove ECR images if you pushed any
+aws ecr describe-repositories --query 'repositories[].repositoryName' --output text
+# Example:
+# aws ecr batch-delete-image --repository-name <name> --image-ids imageTag=latest
+```
+
+Important:
+If you imported an existing Secrets Manager secret (e.g., aws-ec2-utils/db) and you don’t want destroy to delete it, make the module “read-only” (create_secret = false) or remove the secret resource from the stack before destroy.
+Do not destroy your state backend (S3 bucket / DynamoDB lock table) if it’s shared by other environments.
 
 ---
 
@@ -317,3 +387,6 @@ MIT — see [LICENSE](./LICENSE)
 ## 🛠️ Upcoming Features
 - v1.2.0: Kubernetes-based deployment with EKS & LLM inference
 - Follow the repo for updates!
+
+## 🧭 EC2 → ECS → EKS Roadmap
+This toolkit began with EC2 for low-level control (SSH, OS-level experiments), then advanced to ECS Fargate for serverless container orchestration (no instance management, ALB + Secrets Manager + RDS). The next step is EKS to run multiple services with Kubernetes primitives (managed node groups, autoscaling, IAM Roles for Service Accounts, external secrets, and an ALB Ingress Controller), plus a standard observability stack (Prometheus/Grafana) and progressive delivery via GitHub Actions. The goal: a reproducible path from VM-based prototypes → ECS workloads → production-ready EKS with the same app, image, and CI flow.
