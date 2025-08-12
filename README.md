@@ -193,8 +193,8 @@ aws elbv2 describe-target-health --target-group-arn "$TG_ARN" --query 'TargetHea
 
 #### ECS service rollout should be COMPLETED
 ```
-CLUSTER_NAME=aws-utils-cluster   # ← あなたの実名に合わせて
-SERVICE_NAME=aws-utils-ecs-service-5  # ← 実名に合わせて
+CLUSTER_NAME=aws-utils-cluster # replace with your actual cluster name
+SERVICE_NAME=aws-utils-ecs-service-5 # replace with your actual service name
 aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" \
   --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}'
 ```
@@ -219,7 +219,7 @@ tofu init -reconfigure -backend-config=../backend/ecs.hcl
 ```
 For EC2,
 ```
-cd ec2
+cd tofu/ec2
 tofu init
 tofu apply \
   -var="ami=ami-0f9cb75652314425a" \
@@ -231,7 +231,7 @@ tofu apply \
 
 For ECS,
 ```
-cd ecs
+cd tofu/ecs
 tofu init
 tofu apply
 ```
