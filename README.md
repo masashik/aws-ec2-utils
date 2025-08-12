@@ -1,7 +1,12 @@
 # AWS EC2/ECS Infrastructure Automation Toolkit
 
+[![Auto Shutdown EC2](https://github.com/masashik/aws-ec2-utils/actions/workflows/auto_shutdown.yml/badge.svg)](https://github.com/masashik/aws-ec2-utils/actions/workflows/auto_shutdown.yml)
+[![IaC Plan (safe)](https://github.com/masashik/aws-ec2-utils/actions/workflows/iac-plan.yml/badge.svg)](https://github.com/masashik/aws-ec2-utils/actions/workflows/iac-plan.yml)
+[![IaC Apply (manual)](https://github.com/masashik/aws-ec2-utils/actions/workflows/iac-apply.yml/badge.svg)](https://github.com/masashik/aws-ec2-utils/actions/workflows/iac-apply.yml)
+
 ![IaC Plan](https://github.com/<your_org_or_user>/aws-ec2-utils/actions/workflows/iac-plan.yml/badge.svg)
 ![IaC Apply](https://github.com/<your_org_or_user>/aws-ec2-utils/actions/workflows/iac-apply.yml/badge.svg)
+
 ![CI Status](https://github.com/masashik/aws-ec2-utils/actions/workflows/ci.yml/badge.svg)
 ![GitHub release (latest by semver)](https://img.shields.io/github/v/release/masashik/aws-ec2-utils)
 ![GitHub](https://img.shields.io/github/license/masashik/aws-ec2-utils)
