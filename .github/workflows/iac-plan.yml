@@ -1,0 +1,108 @@
+name: IaC Plan (safe)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - 'feature/**'
+      - 'issue-*'
+    paths:
+      - 'tofu/**'
+      - '.github/workflows/iac-plan.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'tofu/**'
+      - '.github/workflows/iac-plan.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: iac-plan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan-ec2:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_ami:            ${{ vars.EC2_AMI_ID }}
+      TF_VAR_instance_type:  ${{ vars.EC2_INSTANCE_TYPE }}
+      TF_VAR_instance_count: ${{ vars.EC2_INSTANCE_COUNT }}
+      TF_VAR_key_name:       ${{ vars.EC2_KEY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+          # tofu_version: v1.8.6
+
+      - run: tofu version
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ca-central-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Plan (EC2)
+        working-directory: tofu/ec2
+        run: |
+          tofu init -backend-config=../backend/ec2.hcl
+          tofu plan -no-color
+      - name: Save plan artifact
+        if: always()
+        working-directory: tofu/ec2
+        run: tofu show -no-color > plan.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plan-ec2-${{ github.sha }}
+          path: tofu/ec2/plan.txt
+
+  plan-ecs:
+    runs-on: ubuntu-latest
+    needs: plan-ec2
+    env:
+      TF_VAR_project:              ${{ vars.ECS_PROJECT }}
+      TF_VAR_aws_region:           ${{ vars.ECS_AWS_REGION }}
+      TF_VAR_vpc_cidr:             ${{ vars.ECS_VPC_CIDR }}
+      TF_VAR_azs:                  ${{ vars.ECS_AZS }}
+      TF_VAR_public_subnet_cidrs:  ${{ vars.ECS_PUBLIC_SUBNET_CIDRS }}
+      TF_VAR_private_subnet_cidrs: ${{ vars.ECS_PRIVATE_SUBNET_CIDRS }}
+      TF_VAR_container_image:      ${{ vars.ECS_CONTAINER_IMAGE }}
+      TF_VAR_container_port:       ${{ vars.ECS_CONTAINER_PORT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+          # tofu_version: v1.8.6
+
+      - run: tofu version
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ca-central-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Plan (ECS)
+        working-directory: tofu/ecs
+        run: |
+          tofu init -backend-config=../backend/ecs.hcl
+          tofu plan -no-color
+
+      - name: Save plan artifact
+        if: always()
+        working-directory: tofu/ecs
+        run: tofu show -no-color > plan.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plan-ecs-${{ github.sha }}
+          path: tofu/ecs/plan.txt

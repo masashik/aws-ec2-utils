@@ -1,0 +1,103 @@
+name: IaC Apply (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: 'Which stack to apply'
+        type: choice
+        required: true
+        default: ecs
+        options: [ ecs, ec2, both ]
+      confirm:
+        description: 'Type YES to confirm costs may incur'
+        type: string
+        required: true
+        default: 'NO'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: iac-apply-prod
+  cancel-in-progress: false
+
+jobs:
+  apply-ec2:
+    if: github.event.inputs.confirm == 'YES' && (github.event.inputs.stack == 'ec2' || github.event.inputs.stack == 'both')
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      TF_VAR_ami:            ${{ vars.EC2_AMI_ID }}
+      TF_VAR_instance_type:  ${{ vars.EC2_INSTANCE_TYPE }}
+      TF_VAR_instance_count: ${{ vars.EC2_INSTANCE_COUNT }}
+      TF_VAR_key_name:       ${{ vars.EC2_KEY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+      - run: tofu version
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ca-central-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Plan to file (EC2)
+        working-directory: tofu/ec2
+        run: |
+          tofu init -backend-config=../backend/ec2.hcl
+          tofu plan -input=false -out=tfplan
+          tofu show -no-color tfplan > plan.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plan-ec2-to-apply-${{ github.run_id }}
+          path: tofu/ec2/plan.txt
+      - name: Apply (EC2)
+        working-directory: tofu/ec2
+        run: tofu apply -input=false -auto-approve tfplan
+
+  apply-ecs:
+    if: github.event.inputs.confirm == 'YES' && (github.event.inputs.stack == 'ecs' || github.event.inputs.stack == 'both')
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      TF_VAR_project:              ${{ vars.ECS_PROJECT }}
+      TF_VAR_aws_region:           ${{ vars.ECS_AWS_REGION }}
+      TF_VAR_vpc_cidr:             ${{ vars.ECS_VPC_CIDR }}
+      TF_VAR_azs:                  ${{ vars.ECS_AZS }}
+      TF_VAR_public_subnet_cidrs:  ${{ vars.ECS_PUBLIC_SUBNET_CIDRS }}
+      TF_VAR_private_subnet_cidrs: ${{ vars.ECS_PRIVATE_SUBNET_CIDRS }}
+      TF_VAR_container_image:      ${{ vars.ECS_CONTAINER_IMAGE }}
+      TF_VAR_container_port:       ${{ vars.ECS_CONTAINER_PORT }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+      - run: tofu version
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ca-central-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Plan to file (ECS)
+        working-directory: tofu/ecs
+        run: |
+          tofu init -backend-config=../backend/ecs.hcl
+          tofu plan -input=false -out=tfplan
+          tofu show -no-color tfplan > plan.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plan-ecs-to-apply-${{ github.run_id }}
+          path: tofu/ecs/plan.txt
+      - name: Apply (ECS)
+        working-directory: tofu/ecs
+        run: tofu apply -input=false -auto-approve tfplan

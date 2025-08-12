@@ -237,3 +237,7 @@ ansible/inventory.ini
 
 README.pdf
 aws-ec2-utils-ec2-arch.png
+
+tofu/**/terraform.tfstate*
+tofu/**/.terraform/
+*.tfvars
