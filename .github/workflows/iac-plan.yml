@@ -24,9 +24,13 @@ concurrency:
 jobs:
   plan-ec2:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_ami:            ${{ vars.EC2_AMI_ID }}
+      TF_VAR_instance_type:  ${{ vars.EC2_INSTANCE_TYPE }}
+      TF_VAR_instance_count: ${{ vars.EC2_INSTANCE_COUNT }}
+      TF_VAR_key_name:       ${{ vars.EC2_KEY_NAME }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
