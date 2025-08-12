@@ -1,0 +1,55 @@
+name: IaC Plan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  plan-ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OpenTofu
+        run: |
+          curl -fsSL https://get.opentofu.org/install.sh | bash
+          tofu version
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ca-central-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Plan (EC2)
+        working-directory: tofu/ec2
+        run: |
+          tofu init -backend-config=../backend/ec2.hcl
+          tofu plan -no-color
+
+  plan-ecs:
+    runs-on: ubuntu-latest
+    needs: plan-ec2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OpenTofu
+        run: |
+          curl -fsSL https://get.opentofu.org/install.sh | bash
+          tofu version
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ca-central-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Plan (ECS)
+        working-directory: tofu/ecs
+        run: |
+          tofu init -backend-config=../backend/ecs.hcl
+          tofu plan -no-color
