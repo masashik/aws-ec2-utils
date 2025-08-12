@@ -19,8 +19,6 @@ permissions:
   contents: read
   id-token: write
 
-environment: prod
-
 concurrency:
   group: iac-apply-prod
   cancel-in-progress: false
@@ -29,6 +27,7 @@ jobs:
   apply-ec2:
     if: github.event.inputs.confirm == 'YES' && (github.event.inputs.stack == 'ec2' || github.event.inputs.stack == 'both')
     runs-on: ubuntu-latest
+    environment: prod
     env:
       TF_VAR_ami:            ${{ vars.EC2_AMI_ID }}
       TF_VAR_instance_type:  ${{ vars.EC2_INSTANCE_TYPE }}
@@ -65,7 +64,7 @@ jobs:
   apply-ecs:
     if: github.event.inputs.confirm == 'YES' && (github.event.inputs.stack == 'ecs' || github.event.inputs.stack == 'both')
     runs-on: ubuntu-latest
-    needs: [ apply-ec2 ]
+    environment: prod
     env:
       TF_VAR_project:              ${{ vars.ECS_PROJECT }}
       TF_VAR_aws_region:           ${{ vars.ECS_AWS_REGION }}
