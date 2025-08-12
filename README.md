@@ -14,11 +14,11 @@ Automated provisioning and deployment of Java-based microservices on AWS ECS (Fa
 | **ECS (Fargate)** | Modern, serverless container orchestration | ECS Cluster, Service, Task Definitions, ALB, RDS, Secrets Manager | Automatic | Pay per task runtime    | No server maintenance |
 
 It enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS ECS and EC2**. 
-By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
+By combining **OpenTofu (Terraform-compatible)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
 
 With this setup, users can
 
-- Provision multiple EC2 instances on-demand using a single Terraform command.
+- Provision multiple EC2 instances on-demand using a single OpenTofu command.
 - Deploy the same containerized Java REST API to multiple EC2 nodes using Ansible.
 - Access the deployed microservices via public IPs and verify database-backed API responses from each server.
 - Instantly start, stop, or destroy environments with a simple CLI command.
@@ -51,7 +51,7 @@ This toolkit automates the full lifecycle:
   - A zero-touch, reproducible dev environment for Java REST API development.
   - Full lifecycle automation: from provisioning to deployment to operation.
   - Support for infrastructure validation, CI testing, and optional self-healing workflows.
-- **ECS Fargate**: Terraform provisions ECS cluster, services, ALB, and RDS. Docker images are pushed to ECR, then deployed without managing EC2 hosts.
+- **ECS Fargate**: OpenTofu provisions ECS cluster, services, ALB, and RDS. Docker images are pushed to ECR, then deployed without managing EC2 hosts.
 
 ## 📐 Architecture (EC2)
 <img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
@@ -65,18 +65,18 @@ This toolkit automates the full lifecycle:
 | Icon | Scenario | Description |
 |------|----------|-------------|
 | 🧪 | Backend Development Sandbox | Easily deploy a Java-based CRUD microservice with PostgreSQL on EC2 for prototyping and testing REST APIs. |
-| 🛠️ | DevOps Automation Practice | Hands-on experience integrating Terraform and Ansible to provision and configure scalable infrastructure. |
+| 🛠️ | DevOps Automation Practice | Hands-on experience integrating OpenTofu and Ansible to provision and configure scalable infrastructure. |
 | 🔁 | CI/CD Demonstration | Use GitHub Actions for automated linting, testing, and pipeline validation with Ansible and Python. |
 | 🧠 | LLM-Based Self-Healing Infrastructure | Simulate a self-healing architecture using LLMs (e.g., Ollama/OpenAI) for automated incident remediation. |
 | ☁️ | Cloud Infrastructure Learning | End-to-end reproducible AWS infrastructure including VPC, security groups, EC2, and IAM roles. |
-| 🔧 | Infrastructure as Code Showcase | Demonstrates clean IaC practices with modular Terraform and declarative Ansible playbooks. |
+| 🔧 | Infrastructure as Code Showcase | Demonstrates clean IaC practices with modular OpenTofu and declarative Ansible playbooks. |
 | 🚀 | Scalable Microservice Deployment | Deploy containerized Java microservices and PostgreSQL DBs across multiple EC2 instances. |
 | 👨‍💻 | Job Portfolio Project | High-quality, production-grade DevOps project ready to present to employers for SRE/Platform roles. |
 
 ## Samples
 
 ```bash
-$ curl -X 'GET' 'http<EC2_PUBLIC_IP>:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62' -H 'accept: application/json' | jq
+$ curl -X 'GET' 'http://<EC2_PUBLIC_IP>:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62' -H 'accept: application/json' | jq
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   729    0   729    0     0    579      0 --:--:--  0:00:01 --:--:--   579
@@ -180,8 +180,9 @@ Verify it’s live:
 
 #### Get an ALB DNS name (pick the first if multiple)
 ```
-ALB_DNS=$(aws elbv2 describe-load-balancers --query 'LoadBalancers[0].DNSName' --output text)
-echo "ALB: http://$ALB_DNS"
+ALB_DNS=$(aws elbv2 describe-load-balancers \
+ --query 'LoadBalancers[?contains(LoadBalancerName, `ecs`) && Scheme==`internet-facing`].[DNSName]' \
+ --output text | head -n1)
 ```
 
 #### Target health should show "healthy"
@@ -192,9 +193,9 @@ aws elbv2 describe-target-health --target-group-arn "$TG_ARN" --query 'TargetHea
 
 #### ECS service rollout should be COMPLETED
 ```
-CLUSTER_ARN=$(aws ecs list-clusters --query 'clusterArns[0]' --output text)
-SERVICE_ARN=$(aws ecs list-services --cluster "$CLUSTER_ARN" --query 'serviceArns[0]' --output text)
-aws ecs describe-services --cluster "$CLUSTER_ARN" --services "$SERVICE_ARN" \
+CLUSTER_NAME=aws-utils-cluster   # ← あなたの実名に合わせて
+SERVICE_NAME=aws-utils-ecs-service-5  # ← 実名に合わせて
+aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" \
   --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}'
 ```
 
@@ -213,9 +214,8 @@ Ensure key files are present:
 ---
 ### Step 2: Choose to provision infrastructure in EC2 or ECS
 ```bash
-cd tofu
-ls
-ec2 ecs
+cd tofu/ecs
+tofu init -reconfigure -backend-config=../backend/ecs.hcl
 ```
 For EC2,
 ```
@@ -358,7 +358,7 @@ ec2-remove: error: the following arguments are required: --region
 - Auto-shutdown idle EC2s via GitHub Actions (default: 6h uptime)
 - Inventory auto-generation on provisioning
 - CI pipeline with lint/test checks via GitHub Actions
-- Terraform-provisioned ECS Cluster, ALB, and RDS
+- OpenTofu-provisioned ECS Cluster, ALB, and RDS
 - ECR integration for container image deployment
 - Serverless scaling with Fargate — no instance maintenance
 
