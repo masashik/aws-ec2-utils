@@ -214,26 +214,15 @@ Ensure key files are present:
 ---
 ### Step 2: Choose to provision infrastructure in EC2 or ECS
 ```bash
-cd tofu/ecs
-tofu init -reconfigure -backend-config=../backend/ecs.hcl
-```
-For EC2,
-```
+# EC2
 cd tofu/ec2
-tofu init
-tofu apply \
-  -var="ami=ami-0f9cb75652314425a" \
-  -var="instance_count=2" \
-  -var="instance_type=t2.micro" \
-  -var="key_name=your-key-name" \
-  -auto-approve
-```
+tofu init -backend-config=../backend/ec2.hcl
+tofu plan -input=false
 
-For ECS,
-```
-cd tofu/ecs
-tofu init
-tofu apply
+# ECS
+cd ../ecs
+tofu init -backend-config=../backend/ecs.hcl
+tofu plan -input=false
 ```
 
 > ⚠️ Note: Make sure the AMI ID is valid in your AWS region.
@@ -243,7 +232,7 @@ tofu apply
 
 To tear down:
 ```bash
-tofu destroy
+tofu destroy -input=false
 ```
 
 ## 💸 Cost & Cleanup
