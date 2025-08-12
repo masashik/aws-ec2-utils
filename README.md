@@ -11,7 +11,7 @@ Automated provisioning and deployment of Java-based microservices on AWS ECS (Fa
 | Mode              | Best For                                   | Infra                                            | Scaling   | Cost                    | Notes                 |
 | ----------------- | ------------------------------------------ | ------------------------------------------------ | --------- | ----------------------- | --------------------- |
 | **EC2**           | Low-level VM management & SSH experiments  | EC2 instances                          | Manual    | Pay for instance uptime | Full OS control       |
-| **ECS (Fargate)** | Modern, serverless container orchestration | ECS Cluster, Service, Task Definitions, ALB, RDS, Secret Manager | Automatic | Pay per task runtime    | No server maintenance |
+| **ECS (Fargate)** | Modern, serverless container orchestration | ECS Cluster, Service, Task Definitions, ALB, RDS, Secrets Manager | Automatic | Pay per task runtime    | No server maintenance |
 
 It enables **automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS ECS and EC2**. 
 By combining **Terraform (OpenTofu)** for infrastructure provisioning, **Ansible** for application configuration, and a custom **Python CLI (Boto3)** for EC2 operations, this toolkit offers a fully reproducible cloud environment for developers building and testing backend services.
@@ -47,7 +47,7 @@ This toolkit automates the full lifecycle:
 - **Ansible**: App-level configuration management across EC2 hosts.
 - **Python CLI (Boto3)**: Operational control (start, stop, terminate, status).
 - **Ollama LLM** (optional): Self-healing and automated troubleshooting via local inference.
-- **RESTful Java DB backed microservice**: A simple CRUD Java microservice and exposed DB data over REST endpoint.
+- **RESTful Java DB-backed microservice**: A simple CRUD Java microservice and exposed DB data over REST endpoint.
   - A zero-touch, reproducible dev environment for Java REST API development.
   - Full lifecycle automation: from provisioning to deployment to operation.
   - Support for infrastructure validation, CI testing, and optional self-healing workflows.
@@ -124,7 +124,7 @@ aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
 
 2. Export your EC2 SSH key name:
 ```bash
-export AWS_EC2_SSH_KEY_NAME=your-key-name.pem
+export AWS_EC2_SSH_KEY_NAME=your-key-name # key pair name, not the .pem file
 ```
 
 3. (Optional) Export your OpenAI API Key:
@@ -211,13 +211,13 @@ Ensure key files are present:
 - `setup.py`, `requirements.txt`
 
 ---
-### Step 2: Choose Provision Infrastructure in EC2 or ECS
+### Step 2: Choose to provision infrastructure in EC2 or ECS
 ```bash
 cd tofu
 ls
 ec2 ecs
 ```
-For ec2,
+For EC2,
 ```
 cd ec2
 tofu init
@@ -229,7 +229,7 @@ tofu apply \
   -auto-approve
 ```
 
-For ecs,
+For ECS,
 ```
 cd ecs
 tofu init
@@ -257,7 +257,7 @@ tofu destroy -auto-approve
 ```
 If you also created the EC2 stack:
 ```
-cd ../ecs
+cd ../ec2
 tofu destroy -auto-approve
 ```
 Optional cleanups:
