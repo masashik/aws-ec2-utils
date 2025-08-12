@@ -55,6 +55,15 @@ jobs:
   plan-ecs:
     runs-on: ubuntu-latest
     needs: plan-ec2
+    env:
+      TF_VAR_project:              ${{ vars.ECS_PROJECT }}
+      TF_VAR_aws_region:           ${{ vars.ECS_AWS_REGION }}
+      TF_VAR_vpc_cidr:             ${{ vars.ECS_VPC_CIDR }}
+      TF_VAR_azs:                  ${{ vars.ECS_AZS }}
+      TF_VAR_public_subnet_cidrs:  ${{ vars.ECS_PUBLIC_SUBNET_CIDRS }}
+      TF_VAR_private_subnet_cidrs: ${{ vars.ECS_PRIVATE_SUBNET_CIDRS }}
+      TF_VAR_container_image:      ${{ vars.ECS_CONTAINER_IMAGE }}
+      TF_VAR_container_port:       ${{ vars.ECS_CONTAINER_PORT }}
     steps:
       - uses: actions/checkout@v4
 
