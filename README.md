@@ -59,8 +59,8 @@ This toolkit automates the full lifecycle:
 
 ## Quick Selector
 
-- Deploy on ECS → [ECS Route — Steps](#ecs-route--steps)
-- Deploy on EC2 → [EC2 Route — Steps](#ec2-route—-steps)
+- Deploy on ECS → [ECS Route - Steps](#ecs-route--steps)
+- Deploy on EC2 → [EC2 Route - Steps](#ec2-route--steps)
 
 ## Definition of Done (DoD)
 
@@ -144,6 +144,11 @@ aws ecs update-service \
 - Daily: After validation, set ECS desiredCount=0 for non-production services.
 - Weekly: Review Target Groups, unattached EIPs/EBS, and unused ECR images.
 - Consider automated cleanup scripts and tagging policies for ephemeral resources.
+
+Important:
+If you imported an existing Secrets Manager secret (e.g., aws-ec2-utils/db) and you don’t want destroy to delete it, make the module “read-only” (create_secret = false) or remove the secret resource from the stack before destroy.
+Do not destroy your state backend (S3 bucket / DynamoDB lock table) if it’s shared by other environments.
+
 
 ### Changelog (for this split)
 - feat(readme): split ECS/EC2 routes with reproducible steps and cost guardrails
@@ -282,49 +287,6 @@ brew update && brew install python3
 ```
 
 ---
-## Try in 5 minutes for ECS (EC2 follows)
-
-#### 0) Prereqs: AWS CLI is authenticated; region is set (e.g., ca-central-1)
-
-#### 1) Clone & enter
-```
-git clone https://github.com/masashik/aws-ec2-utils
-cd aws-ec2-utils
-```
-
-#### 2) Initialize ECS IaC (S3+DynamoDB backend, if configured)
-```
-cd tofu/ecs
-tofu init -reconfigure -backend-config=../backend/ecs.hcl
-```
-
-#### 3) Plan & apply
-```
-tofu plan
-tofu apply -auto-approve
-```
-
-Verify it’s live:
-
-#### Get an ALB DNS name (pick the first if multiple)
-```
-ALB_DNS=$(aws elbv2 describe-load-balancers \
- --query 'LoadBalancers[?contains(LoadBalancerName, `ecs`) && Scheme==`internet-facing`].[DNSName]' \
- --output text | head -n1)
-```
-
-#### Target health should show "healthy"
-```
-TG_ARN=$(aws elbv2 describe-target-groups --query 'TargetGroups[0].TargetGroupArn' --output text)
-aws elbv2 describe-target-health --target-group-arn "$TG_ARN" --query 'TargetHealthDescriptions[].TargetHealth.State'
-```
-
-#### ECS service rollout should be COMPLETED
-```
-CLUSTER_NAME=aws-utils-cluster # replace with your actual cluster name
-SERVICE_NAME=aws-utils-ecs-service-5 # replace with your actual service name
-aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" \
-  --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}'
 ```
 
 ## 🚀 Quick Start
@@ -363,32 +325,6 @@ To tear down:
 tofu destroy -input=false
 ```
 
-## 💸 Cost & Cleanup
-
-AWS resources incur charges while they exist. Notable cost drivers in this project include ALB (billed hourly + LCUs), RDS (Postgres), ECS tasks, ECR storage, Secrets Manager, and S3. ALB cannot be “stopped”—only deleted—so don’t leave stacks running unintentionally.
-
-Tear down ECS stack:
-```
-cd tofu/ecs
-tofu destroy -auto-approve
-```
-If you also created the EC2 stack:
-```
-cd ../ec2
-tofu destroy -auto-approve
-```
-Optional cleanups:
-
-```
-# Remove ECR images if you pushed any
-aws ecr describe-repositories --query 'repositories[].repositoryName' --output text
-# Example:
-# aws ecr batch-delete-image --repository-name <name> --image-ids imageTag=latest
-```
-
-Important:
-If you imported an existing Secrets Manager secret (e.g., aws-ec2-utils/db) and you don’t want destroy to delete it, make the module “read-only” (create_secret = false) or remove the secret resource from the stack before destroy.
-Do not destroy your state backend (S3 bucket / DynamoDB lock table) if it’s shared by other environments.
 
 ---
 
@@ -525,7 +461,7 @@ Goal: When code is pushed to main, automatically build & push to ECR and update 
 - Repo scope condition is recommended (restrict to this repo)
 
 #### Minimal Workflow: .github/workflows/deploy-ecs.yml
-```
+```bash
 name: Deploy to ECS
 on:
   push:
