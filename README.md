@@ -78,7 +78,7 @@ This toolkit automates the full lifecycle:
 - Region: <your-region> (example: ca-central-1)
 
 ### Environment Variables (example)
-```
+```bash
 export AWS_REGION=ca-central-1
 export ECR_REGISTRY=<123456789012.dkr.ecr.${AWS_REGION}.amazonaws.com>
 export ECR_REPO=<aws-ec2-utils/java-web-data-postgres-db>
@@ -90,7 +90,7 @@ export ECS_SERVICE=<aws-utils-ecs-service>
 
 Multi-arch is useful when your Fargate platform or local dev varies.
 
-```
+```bash
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t ${ECR_REGISTRY}/${ECR_REPO}:latest \
@@ -98,14 +98,14 @@ docker buildx build \
 ```
 
 ### Provision / Update with IaC
-```
+```bash
 cd <path-to-ecs-iac>   # e.g., tofu/ecs
 tofu init
 tofu apply -auto-approve
 ```
 
 ### Discover ALB DNS & Smoke Test
-```
+```bash
 ALB_DNS=$(aws elbv2 describe-load-balancers \
   --query "LoadBalancers[?contains(LoadBalancerName, 'ecs')].DNSName" \
   --output text --region ${AWS_REGION})
@@ -114,7 +114,7 @@ curl -i "http://${ALB_DNS}/v1/organization/<sample-id>/license/" | head -n 20
 ```
 
 ### Service Rollout Check
-```
+```bash
 aws ecs describe-services \
   --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}" \
   --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}' \
@@ -129,7 +129,7 @@ aws ecs describe-services \
 
 ### Cleanup / Cost Controls
 
-```
+```bash
 # Pause test traffic to reduce costs
 aws ecs update-service \
   --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
@@ -163,25 +163,25 @@ Do not destroy your state backend (S3 bucket / DynamoDB lock table) if it’s sh
 - Security Group(s) and Key Pair prepared for EC2 access
 
 ### Provision Infra
-```
+```bash
 cd <path-to-ec2-iac>   # e.g., tofu/ec2
 tofu init
 tofu apply -auto-approve
 ```
 
 ### Configure & Deploy App (Ansible)
-```
+```bash
 cd <path-to-ansible>   # e.g., ansible/ec2
 ansible-playbook -i inventories/<env>/hosts site.yml
 ```
 
 ### Smoke Test
-```
+```bash
 curl -i "http://<ec2-public-dns>:8080/v1/organization/<sample-id>/license/" | head -n 20
 ```
 
 ### Cleanup / Cost Controls
-```
+```bash
 # For test-only environments, tear down to avoid charges
 tofu destroy -auto-approve
 ```
@@ -461,7 +461,7 @@ Goal: When code is pushed to main, automatically build & push to ECR and update 
 - Repo scope condition is recommended (restrict to this repo)
 
 #### Minimal Workflow: .github/workflows/deploy-ecs.yml
-```bash
+```yaml
 name: Deploy to ECS
 on:
   push:
