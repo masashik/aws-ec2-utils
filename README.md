@@ -56,6 +56,131 @@ This toolkit automates the full lifecycle:
   - Support for infrastructure validation, CI testing, and optional self-healing workflows.
 - **ECS Fargate**: OpenTofu provisions ECS cluster, services, ALB, and RDS. Docker images are pushed to ECR, then deployed without managing EC2 hosts.
 
+
+## Quick Selector
+
+- Deploy on ECS → [ECS Route — Steps](#ecs-route--steps)
+- Deploy on EC2 → [EC2 Route — Steps](#ec2-route—-steps)
+
+## Definition of Done (DoD)
+
+- Fresh deployment completes without manual edits.
+- For ECS: service rollout is COMPLETED and ALB endpoint returns HTTP 200.
+- For EC2: the instance serves HTTP 200 on the expected endpoint.
+- Cleanup instructions lower costs when the environment is idle.
+
+## ECS Route — Steps
+
+### Prerequisites
+
+- CLI tools: AWS CLI, OpenTofu/Terraform, Docker (with Buildx), jq
+- AWS permissions for: ECR, ECS, ALB, RDS, Secrets Manager, IAM (for PassRole to task execution role)
+- Region: <your-region> (example: ca-central-1)
+
+### Environment Variables (example)
+```
+export AWS_REGION=ca-central-1
+export ECR_REGISTRY=<123456789012.dkr.ecr.${AWS_REGION}.amazonaws.com>
+export ECR_REPO=<aws-ec2-utils/java-web-data-postgres-db>
+export ECS_CLUSTER=<aws-utils-cluster>
+export ECS_SERVICE=<aws-utils-ecs-service>
+```
+
+### Build & Push Container (if needed)
+
+Multi-arch is useful when your Fargate platform or local dev varies.
+
+```
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ${ECR_REGISTRY}/${ECR_REPO}:latest \
+  --push .
+```
+
+### Provision / Update with IaC
+```
+cd <path-to-ecs-iac>   # e.g., tofu/ecs
+tofu init
+tofu apply -auto-approve
+```
+
+### Discover ALB DNS & Smoke Test
+```
+ALB_DNS=$(aws elbv2 describe-load-balancers \
+  --query "LoadBalancers[?contains(LoadBalancerName, 'ecs')].DNSName" \
+  --output text --region ${AWS_REGION})
+
+curl -i "http://${ALB_DNS}/v1/organization/<sample-id>/license/" | head -n 20
+```
+
+### Service Rollout Check
+```
+aws ecs describe-services \
+  --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}" \
+  --query 'services[0].{running:runningCount,desired:desiredCount,rollout:deployments[0].rolloutState}' \
+  --region ${AWS_REGION}
+# Expect: {"running":1,"desired":1,"rollout":"COMPLETED"}
+```
+
+### Known Pitfalls
+- Missing iam:PassRole on the service update prevents new task definitions from running.
+- Secrets Manager name/ARN mismatches cause DB connection failures.
+- Ensure Buildx is enabled; otherwise multi-arch builds won’t work.
+
+### Cleanup / Cost Controls
+
+```
+# Pause test traffic to reduce costs
+aws ecs update-service \
+  --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
+  --desired-count 0 --region ${AWS_REGION}
+
+# Destroy ephemeral helpers (e.g., bastion) via IaC when not needed
+# Review ECR for unused images before the week ends
+```
+
+### Cost Management (Daily/Weekly)
+
+- Daily: After validation, set ECS desiredCount=0 for non-production services.
+- Weekly: Review Target Groups, unattached EIPs/EBS, and unused ECR images.
+- Consider automated cleanup scripts and tagging policies for ephemeral resources.
+
+### Changelog (for this split)
+- feat(readme): split ECS/EC2 routes with reproducible steps and cost guardrails
+- Added example GitHub Actions workflow for ECS CD.
+
+## EC2 Route — Steps
+
+### Prerequisites
+
+- CLI tools: AWS CLI, OpenTofu/Terraform, Ansible
+- RDS (PostgreSQL) recommended (can be shared with the ECS route)
+- Security Group(s) and Key Pair prepared for EC2 access
+
+### Provision Infra
+```
+cd <path-to-ec2-iac>   # e.g., tofu/ec2
+tofu init
+tofu apply -auto-approve
+```
+
+### Configure & Deploy App (Ansible)
+```
+cd <path-to-ansible>   # e.g., ansible/ec2
+ansible-playbook -i inventories/<env>/hosts site.yml
+```
+
+### Smoke Test
+```
+curl -i "http://<ec2-public-dns>:8080/v1/organization/<sample-id>/license/" | head -n 20
+```
+
+### Cleanup / Cost Controls
+```
+# For test-only environments, tear down to avoid charges
+tofu destroy -auto-approve
+```
+
 ## 📐 Architecture (EC2)
 <img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
 
@@ -382,3 +507,76 @@ MIT — see [LICENSE](./LICENSE)
 
 ## 🧭 EC2 → ECS → EKS Roadmap
 This toolkit began with EC2 for low-level control (SSH, OS-level experiments), then advanced to ECS Fargate for serverless container orchestration (no instance management, ALB + Secrets Manager + RDS). The next step is EKS to run multiple services with Kubernetes primitives (managed node groups, autoscaling, IAM Roles for Service Accounts, external secrets, and an ALB Ingress Controller), plus a standard observability stack (Prometheus/Grafana) and progressive delivery via GitHub Actions. The goal: a reproducible path from VM-based prototypes → ECS workloads → production-ready EKS with the same app, image, and CI flow.
+
+
+## GitHub Actions — ECS Continuous Delivery (Example)
+
+Goal: When code is pushed to main, automatically build & push to ECR and update the ECS service.
+
+#### Required GitHub Secrets / Variables
+- AWS_REGION
+- AWS_ROLE_ARN (for GitHub OIDC → STS AssumeRole)
+- ECR_REGISTRY, ECR_REPO
+- ECS_CLUSTER, ECS_SERVICE
+
+#### Trust Policy (AWS IAM Role for OIDC)
+- Issuer: token.actions.githubusercontent.com
+- Condition: aud=sts.amazonaws.com
+- Repo scope condition is recommended (restrict to this repo)
+
+#### Minimal Workflow: .github/workflows/deploy-ecs.yml
+```
+name: Deploy to ECS
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || secrets.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push Image (multi-arch)
+        run: |
+          docker buildx create --use || true
+          IMAGE="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}:latest"
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t "$IMAGE" --push .
+
+      - name: Register Task Definition
+        run: |
+          # Update your task definition JSON with the new image digest if needed
+          # Example shows a placeholder; adapt to your environment
+          echo "Registering new task definition (placeholder)…"
+
+      - name: Update ECS Service
+        run: |
+          aws ecs update-service \
+            --cluster "${{ secrets.ECS_CLUSTER }}" \
+            --service "${{ secrets.ECS_SERVICE }}" \
+            --force-new-deployment \
+            --region "${{ vars.AWS_REGION || secrets.AWS_REGION }}"
+
+      - name: Wait for Rollout
+        run: |
+          aws ecs wait services-stable \
+            --cluster "${{ secrets.ECS_CLUSTER }}" \
+            --services "${{ secrets.ECS_SERVICE }}"
+```
