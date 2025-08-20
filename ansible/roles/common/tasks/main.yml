@@ -33,3 +33,13 @@
         name: docker
         enabled: true
         state: started
+
+#- name: Ensure docker SDK for Python is present
+#  ansible.builtin.pip:
+#    name: docker
+#  become: true
+
+- name: Create shared docker network
+  community.docker.docker_network:
+    name: "{{ llm_docker_network }}"
+    state: present

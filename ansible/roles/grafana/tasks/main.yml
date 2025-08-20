@@ -1,0 +1,16 @@
+---
+- name: Pull grafana image
+  community.docker.docker_image:
+    name: "{{ grafana_image }}"
+    source: pull
+
+- name: Run grafana
+  community.docker.docker_container:
+    name: grafana
+    image: "{{ grafana_image }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ llm_docker_network }}"
+    ports:
+      - "{{ expose_grafana_port }}:3000"

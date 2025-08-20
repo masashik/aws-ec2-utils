@@ -1,0 +1,9 @@
+---
+- hosts: dev
+  become: true
+  roles:
+    - common
+    - ollama
+    - llm_api
+    - prometheus
+    - grafana

@@ -1,0 +1,14 @@
+---
+# Grafana defaults
+
+# Docker image
+grafana_image: "grafana/grafana:latest"
+
+grafana_container_name: "grafana"
+
+expose_grafana_port: "3000"
+
+grafana_data_dir: "/opt/grafana_data"
+
+grafana_admin_user: "admin"
+grafana_admin_password: "admin"

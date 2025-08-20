@@ -1,2 +1,3 @@
 ---
 # defaults file for roles/common
+llm_docker_network: llmnet

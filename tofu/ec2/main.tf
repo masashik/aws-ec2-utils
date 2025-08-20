@@ -4,6 +4,9 @@ module "vpc" {
   public_subnet_cidr = "10.0.1.0/24"
   az                 = "ca-central-1a"
   name_prefix        = "dev"
+  admin_cidr         = var.admin_cidr
+  llm_api_cidr       = var.llm_api_cidr
+  expose_ollama_pub  = var.expose_ollama_pub
 }
 
 module "ec2" {
@@ -67,4 +70,13 @@ provider "aws" {
 
 output "instance_ips" {
   value = module.ec2.instance_ips
+}
+
+data "aws_iam_role" "ec2_role" {
+  name = "CloudWatchEC2"
+}
+
+resource "aws_iam_role_policy_attachment" "ecr_readonly" {
+  role       = data.aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }

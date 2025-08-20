@@ -1,0 +1,7 @@
+# defaults for ollama role
+ollama_image: "ollama/ollama:latest"
+ollama_container_name: "ollama"
+ollama_port: "11434"
+ollama_network: "{{ llm_docker_network | default('llmnet') }}"
+expose_ollama_port: "11434"
+ollama_volume_dir: "/opt/ollama"

@@ -27,7 +27,26 @@ variable "key_name" {
 #  type        = string
 #  description = "SG to attach to EC2"
 #}
+
 variable "instance_count" {
   description = "Number of EC2 instances to launch"
   type        = number
+}
+
+# root variables.tf
+variable "admin_cidr" {
+  description = "Admin source IP (/32) for SSH, Grafana, Prometheus, etc."
+  type        = string
+}
+
+variable "llm_api_cidr" {
+  description = "CIDR blocks allowed to access llm-api (8000)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "expose_ollama_pub" {
+  description = "Temporarily expose Ollama (11434) to admin_cidr"
+  type        = bool
+  default     = false
 }
