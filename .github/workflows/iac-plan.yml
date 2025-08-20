@@ -49,7 +49,7 @@ jobs:
       - name: Plan (EC2)
         working-directory: tofu/ec2
         env:
-          TF_VAR_admin_cidr: ${{ secrets.ADMIN_CIDR }} # sets var.admin_cidr
+          TF_VAR_admin_cidr: ${{ vars.ADMIN_CIDR }} # sets var.admin_cidr
         run: |
           tofu init -backend-config=../backend/ec2.hcl
           tofu plan -no-color
