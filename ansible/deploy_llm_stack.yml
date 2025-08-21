@@ -1,4 +1,5 @@
 ---
+- name: Deploy LLM Infer API server and its stack to EC2
 - hosts: dev
   become: true
   roles:

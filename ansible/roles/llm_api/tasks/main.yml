@@ -45,9 +45,9 @@
 
 - name: Pull llm-api image from ECR (force refresh even for same tag)
   community.docker.docker_image:
-    name: "{{ llm_api_image }}" # e.g. 5816.../aws-ec2-utils/llm-api-server:latest
+    name: "{{ llm_api_image }}"  # e.g. 5816.../aws-ec2-utils/llm-api-server:latest
     source: pull
-    force_source: true # <- pull even if image already exists
+    force_source: true  # <- pull even if image already exists
   register: llm_api_pull
   become: true
 
@@ -67,8 +67,3 @@
     recreate: "{{ llm_api_pull.changed }}"  # <- only recreate when image actually updated
     pull: false                              # we already pulled above
   become: true
-    # 
-    # log_driver: json-file
-    # log_options:
-    #   max-size: "10m"
-    #   max-file: "3"
