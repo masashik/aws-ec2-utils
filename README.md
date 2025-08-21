@@ -161,6 +161,7 @@ changed: [3.97.11.189]
 PLAY RECAP **********************************************************************************************************************************
 3.97.11.189                : ok=24   changed=10   unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
 ```
+
 ### 4) Verify (cURL)
 ```
 
@@ -174,6 +175,7 @@ curl -s -X POST http://3.97.11.189:8000/infer \
   "output": "I can assist with a variety of tasks, including:\n\n* Answering questions on a wide range of topics\n* Providing definitions and explanations\n* Generating text based on prompts or conversations\n* Summarizing long pieces of text into shorter versions\n* Offering suggestions for creative projects or ideas\n* Translation from English to other languages."
 }
 
+### 5) Cost Control / Cleanup
 
 # OpenAI backend (OPENAI_API_KEY is necessary)
 curl -s -X POST http://3.97.11.189:8000/infer \
@@ -184,7 +186,17 @@ curl -s -X POST http://3.97.11.189:8000/infer \
 }
 ```
 
+### 5) Cost Control / Cleanup (Please make sure run this after your experiment is done! You need to save money!)
+```bash
+# Destroy the entire infrastructure
+tofu destroy -auto-approve
 
+...execution...
+
+module.vpc.aws_vpc.main: Destroying... [id=vpc-0bc980c8f6481fc33]
+module.vpc.aws_vpc.main: Destruction complete after 1s
+Destroy complete! Resources: 9 destroyed.
+```
 
 # Automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS ECS and EC2
 
