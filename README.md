@@ -1,4 +1,4 @@
-# AWS EC2/ECS Infrastructure Automation Toolkit
+# Automated deployment of LLM Inference API on AWS EC2 with full observability (Prometheus/Grafana) and backend switching (Ollama ↔ OpenAI)
 
 [![Auto Shutdown EC2](https://github.com/masashik/aws-ec2-utils/actions/workflows/auto_shutdown.yml/badge.svg)](https://github.com/masashik/aws-ec2-utils/actions/workflows/auto_shutdown.yml)
 [![IaC Plan (safe)](https://github.com/masashik/aws-ec2-utils/actions/workflows/iac-plan.yml/badge.svg)](https://github.com/masashik/aws-ec2-utils/actions/workflows/iac-plan.yml)
@@ -8,6 +8,37 @@
 ![GitHub](https://img.shields.io/github/license/masashik/aws-ec2-utils)
 ![GitHub issues](https://img.shields.io/github/issues/masashik/aws-ec2-utils)
 [![codecov](https://codecov.io/gh/masashik/aws-ec2-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/masashik/aws-ec2-utils)
+
+
+<img width="1176" height="669" alt="LLM Inference API on AWS EC2 with full observability and CICD" src="https://github.com/user-attachments/assets/fb2023ba-c49c-4d01-ab45-f0cbf2ff2667" />
+
+# Quick Start
+
+```bash
+# Provisioning infrastructure
+ADMIN_IP="$(curl -fsS https://checkip.amazonaws.com || curl -fsS https://ifconfig.me)"
+tofu apply \
+  -var="ami=ami-0f9cb75652314425a" \
+  -var="instance_count=1" \
+  -var="instance_type=t2.xlarge" \
+  -var="key_name=aws-canada-backend-1" \
+  -var="admin_cidr=${ADMIN_IP}/32" \
+  -auto-approve
+
+# Updating and instsalling software components
+ansible-playbook -i ansible/inventory.ini ansible/deploy_llm_stack.yml
+
+# Ollama response
+curl -s -X POST http://<EC2 Public IP>:8000/infer \
+  -H 'Content-Type: application/json' \
+  -d '{"prompt":"Hello from EC2!","backend":"ollama","model":"llama3.1:8b"}' | jq .
+
+# OpenAI response
+curl -s -X POST http://<EC2 Public IP>:8000/infer \
+  -H 'Content-Type: application/json' \
+  -d '{"prompt":"Ping from EC2","backend":"openai","model":"gpt-4o-mini"}' | jq .
+```
+
 
 Automated provisioning and deployment of Java-based microservices on AWS ECS (Fargate) or EC2 — user-selectable at deploy time.
 
