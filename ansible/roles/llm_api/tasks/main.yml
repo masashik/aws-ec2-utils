@@ -28,7 +28,7 @@
 
 - name: Verify awscli version (should be v2)
   ansible.builtin.command: aws --version
-  register: aws_ver
+  register: llm_api_aws_ver
   changed_when: false
   become: true
 
@@ -36,7 +36,7 @@
   ansible.builtin.command: aws ecr get-login-password --region "{{ ecr_region }}"
   environment:
     AWS_DEFAULT_REGION: "{{ ecr_region }}"
-  register: ecr_pass
+  register: llm_api_ecr_pass
   changed_when: false
   no_log: true
 

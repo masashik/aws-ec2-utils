@@ -26,6 +26,6 @@
   community.docker.docker_container_exec:
     container: ollama
     command: "ollama pull llama3.1:8b"
-  register: pull_result
-  changed_when: "'pulling manifest' in pull_result.stdout or 'downloading' in pull_result.stdout"
+  register: ollama_pull_result
+  changed_when: "'pulling manifest' in ollama_pull_result.stdout or 'downloading' in ollama_pull_result.stdout"
   failed_when: false
