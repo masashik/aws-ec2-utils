@@ -1,0 +1,31 @@
+---
+- name: Pull ollama image
+  community.docker.docker_image:
+    name: "{{ ollama_image }}"
+    source: pull
+
+- name: Run ollama container (persistent model store)
+  community.docker.docker_container:
+    name: ollama
+    image: "{{ ollama_image }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ llm_docker_network }}"
+    ports:
+      - "{{ expose_ollama_port }}:11434"
+    volumes:
+      - /opt/ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+- name: Pull default model for faster first request
+  community.docker.docker_container_exec:
+    container: ollama
+    command: "ollama pull llama3.1:8b"
+  register: ollama_pull_result
+  changed_when: "'pulling manifest' in ollama_pull_result.stdout or 'downloading' in ollama_pull_result.stdout"
+  failed_when: false

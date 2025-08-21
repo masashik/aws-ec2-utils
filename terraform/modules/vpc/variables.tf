@@ -17,3 +17,7 @@ variable "name_prefix" {
   type        = string
   description = "Prefix to name VPC resources"
 }
+
+variable "admin_cidr"        { type = string  description = "My localhost IP/32" }
+variable "llm_api_cidr"      { type = list(string) default = ["0.0.0.0/0"] }
+variable "expose_ollama_pub" { type = bool default = false }

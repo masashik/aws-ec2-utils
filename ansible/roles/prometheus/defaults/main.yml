@@ -1,0 +1,8 @@
+---
+# Prometheus defaults
+
+# Docker image
+prometheus_image: "prom/prometheus:latest"
+prometheus_container_name: "prometheus"
+prometheus_config_file: "/etc/prometheus/prometheus.yml"
+prometheus_data_dir: "/opt/prometheus_data"

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-cd ../tofu
+cd ../tofu/ec2
 
 IPS=$(tofu output -json instance_ips | jq -r '.[]')
 
-cd ..
+cd ../..
 
 cat <<EOF > ansible/inventory.ini
 [dev]

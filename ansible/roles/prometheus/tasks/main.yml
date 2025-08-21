@@ -1,0 +1,45 @@
+---
+- name: Render prometheus.yml
+  ansible.builtin.copy:
+    dest: /opt/prometheus.yml
+    content: |
+      global:
+        scrape_interval: 5s
+      scrape_configs:
+        - job_name: "llm-api"
+          static_configs:
+            - targets: ["llm-api:8000"]
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart prometheus
+
+- name: Pull prometheus image
+  community.docker.docker_image:
+    name: "{{ prometheus_image }}"
+    source: pull
+
+- name: Run prometheus
+  community.docker.docker_container:
+    name: prometheus
+    image: "{{ prometheus_image }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ llm_docker_network }}"
+    ports:
+      - "{{ expose_prometheus_port }}:9090"
+    volumes:
+      - /opt/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+# handlers/main.yml
+# - name: Restart prometheus
+#   community.docker.docker_container:
+#     name: prometheus
+#     state: started
+#     restart: true
