@@ -12,11 +12,56 @@
 
 <img width="1176" height="669" alt="LLM Inference API on AWS EC2 with full observability and CICD" src="https://github.com/user-attachments/assets/fb2023ba-c49c-4d01-ab45-f0cbf2ff2667" />
 
-# Quick Start
+# LLM API Server on EC2 — Quick Start (FastAPI + Ollama/OpenAI)
 
+### Prerequisites
+- The project is cloned on your host.
+- AWS CLI / OpenTofu / Ansible / Python3 / jq (localhost)
+- AWS Credentials(~/.aws/{config,credentials})
+- EC2 Key Pair（Example: aws-canada-backend-1）
+- (If you use OpenAI) OPENAI_API_KEY
+
+## 0) Clone the project
 ```bash
-# Provisioning infrastructure
+$ git clone git@github.com:masashik/aws-ec2-utils.git
+
+cd aws-ec2-utils/tofu/ec2
+
+~/Downloads/aws-ec2-utils/tofu/ec2$ls
+backend.tf               modules                  terraform.tfvars.example
+main.tf                  outputs.tf               variables.tf
+```
+
+## 1) Provision EC2
+```bash
+
+# Limiting Ingress at administrator's host IP to access EC2 Linux server port 22 and 8000
 ADMIN_IP="$(curl -fsS https://checkip.amazonaws.com || curl -fsS https://ifconfig.me)"
+
+# Verify if you properly got your IP.
+~/Downloads/aws-ec2-utils/tofu/ec2$echo $ADMIN_IP
+(Ex.) 111.111.111.111
+
+# Initialize the OpenTofu
+~/Downloads/aws-ec2-utils/tofu/ec2$ tofu init -backend=false
+
+# Please check if you see this message.
+OpenTofu has been successfully initialized!
+
+# Please check if this file (.terraform.lock.hcl) is created.
+~/Downloads/aws-ec2-utils/tofu/ec2$ls .terraform.lock.hcl
+.terraform.lock.hcl
+
+
+# Please check if you are OK with the following choice of EC2 instace choice and OS image.
+# t2.xlarge is expensive ($140/month) so please don't forget to terminate after your experiments.
+# we need this large instance for a few minutes LLM service testing since we install Ollama LLM into it.
+#
+# ami-0f9cb75652314425a is Amazon Linux
+# instance_count is set 1, and you can increase as many as you want,
+#     and each instsance will get an exact copy since we install the LLM API stack over Ansible playbook.
+# instance_type is t2.xlarge, and please be careful to terminate this instsane after your usage.
+# key_name is the SSH key pair to connect to your EC2 instance.
 tofu apply \
   -var="ami=ami-0f9cb75652314425a" \
   -var="instance_count=1" \
@@ -25,20 +70,130 @@ tofu apply \
   -var="admin_cidr=${ADMIN_IP}/32" \
   -auto-approve
 
-# Updating and instsalling software components
-ansible-playbook -i ansible/inventory.ini ansible/deploy_llm_stack.yml
-
-# Ollama response
-curl -s -X POST http://<EC2 Public IP>:8000/infer \
-  -H 'Content-Type: application/json' \
-  -d '{"prompt":"Hello from EC2!","backend":"ollama","model":"llama3.1:8b"}' | jq .
-
-# OpenAI response
-curl -s -X POST http://<EC2 Public IP>:8000/infer \
-  -H 'Content-Type: application/json' \
-  -d '{"prompt":"Ping from EC2","backend":"openai","model":"gpt-4o-mini"}' | jq .
+....Executing OpenTofu scripts....
 ```
 
+You will see the following outputs in your terminal.
+
+```bash
+Plan: 9 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + instance_ips = [
+      + (known after apply),
+    ]
+
+Apply complete! Resources: 9 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+instance_ips = [
+  "3.97.11.189",
+]
+```
+
+You got the public IP of the EC2 instance in `instance_ips`.
+Let's embed it into Ansible host file to.
+
+## 2) Generate Ansible Inventory（EC2）
+```bash
+# inventory file is created based on the EC2Public IP/Private IP
+$ pwd
+/Users/masashi/Downloads/aws-ec2-utils/tofu/ec2
+cd ../../scripts
+bash gen_inventory.sh
+[OK] Inventory generated at ansible/inventory.ini
+
+# Check the created inventory.
+cat ../ansible/inventory.ini
+[dev]
+3.97.11.189 ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/aws-canada-backend-1.pem
+```
+
+### 3) Deploy LLM Stack（Ansible）
+```bash
+cd ../ansible
+
+# You need to set API key for OpenAI usage. You need to set in Ansible.
+# export OPENAI_API_KEY=sk-xxxx   # or you can set it in group_vars/all.yml
+
+ansible-playbook -i inventory.ini deploy_llm_stack.yml
+```
+Role: FastAPI LLM API setup and launch to prepare for Ollama and OpenAI backend.
+
+You can get these errors
+```
+ERROR! the field 'hosts' is required but was not set
+
+TASK [llm_api : Docker login to ECR] ********************************************************************************************************
+fatal: [3.97.11.189]: FAILED! => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result"}
+
+        aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin 581649156172.dkr.ecr.ca-central-1.amazonaws.com
+```
+
+This is the successful completed message upon finishing the deploy_llm_stack.yml playbook.
+```
+PLAY [Deploy LLM Infer API server and its stack to EC2] *************************************************************************************
+
+TASK [Gathering Facts] **********************************************************************************************************************
+[WARNING]: Platform linux on host 3.97.11.189 is using the discovered Python interpreter at /usr/bin/python3.9, but future installation of
+another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-
+core/2.15/reference_appendices/interpreter_discovery.html for more information.
+ok: [3.97.11.189]
+
+TASK [common : Update all system packages (via yum command — module not suitable)] **********************************************************
+changed: [3.97.11.189]
+
+TASK [prometheus : Pull prometheus image] ***************************************************************************************************
+changed: [3.97.11.189]
+
+TASK [prometheus : Run prometheus] **********************************************************************************************************
+changed: [3.97.11.189]
+
+TASK [grafana : Pull grafana image] *********************************************************************************************************
+changed: [3.97.11.189]
+
+TASK [grafana : Run grafana] ****************************************************************************************************************
+changed: [3.97.11.189]
+
+RUNNING HANDLER [prometheus : Restart prometheus] *******************************************************************************************
+changed: [3.97.11.189]
+PLAY RECAP **********************************************************************************************************************************
+3.97.11.189                : ok=24   changed=10   unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+```
+### 4) Verify (cURL)
+```
+
+# Ollama backend (No OPENAI_API_KEY)
+# Example: EC2_PUBLIC_IP needs to be replaced an actual public IP address of EC2 instance.
+curl -s -X POST http://3.97.11.189:8000/infer \
+  -H 'Content-Type: application/json' \
+  -d '{"prompt":"How can we utilize you?","backend":"ollama","model":"llama3.1:8b"}' | jq .
+
+{
+  "output": "I can assist with a variety of tasks, including:\n\n* Answering questions on a wide range of topics\n* Providing definitions and explanations\n* Generating text based on prompts or conversations\n* Summarizing long pieces of text into shorter versions\n* Offering suggestions for creative projects or ideas\n* Translation from English to other languages."
+}
+
+
+# OpenAI backend (OPENAI_API_KEY is necessary)
+curl -s -X POST http://3.97.11.189:8000/infer \
+  -H 'Content-Type: application/json' \
+  -d '{"prompt":"Ping from EC2","backend":"openai","model":"gpt-4o-mini"}' | jq .
+{
+  "output": "To ping an EC2 instance, ensure it has a public IP address and that the security group allows inbound ICMP traffic. Use the following command from your local machine:\n\n```bash\nping <EIP_or_public_DNS>\n```\n\nReplace `<EIP_or_public_DNS>` with the Elastic IP or public DNS of your EC2 instance. If the instance is configured correctly, you should see replies indicating successful pings. If there are no replies, check your security group settings, network ACLs, and ensure the instance is running."
+}
+```
+
+
+
+# Automated deployment and scaling of a containerized Java microservice with a PostgreSQL backend on AWS ECS and EC2
+
+
+## Architecture (EC2)
+<img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
+
+## Architecture (ECS)
+<img width="964" height="675" alt="aws-ecs-utils-arch" src="https://github.com/user-attachments/assets/534e1e98-a6b5-4190-85e0-996880594531" />
 
 Automated provisioning and deployment of Java-based microservices on AWS ECS (Fargate) or EC2 — user-selectable at deploy time.
 
@@ -216,13 +371,6 @@ curl -i "http://<ec2-public-dns>:8080/v1/organization/<sample-id>/license/" | he
 # For test-only environments, tear down to avoid charges
 tofu destroy -auto-approve
 ```
-
-## 📐 Architecture (EC2)
-<img width="949" height="704" alt="Screenshot 2025-08-05 at 1 05 40 PM" src="https://github.com/user-attachments/assets/87ab7a83-0191-4095-9c2d-dd24736bcd24" />
-
-## 📐 Architecture (ECS)
-
-<img width="964" height="675" alt="aws-ecs-utils-arch" src="https://github.com/user-attachments/assets/534e1e98-a6b5-4190-85e0-996880594531" />
 
 ## 🧩 Use Cases
 
