@@ -44,7 +44,7 @@
   community.docker.docker_login:
     registry_url: "{{ ecr_registry }}"
     username: AWS
-    password: "{{ ecr_pass.stdout }}"
+    password: "{{ llm_api_ecr_pass.stdout }}"
   become: true
   no_log: true
 
