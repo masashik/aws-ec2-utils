@@ -9,6 +9,9 @@
         - job_name: "llm-api"
           static_configs:
             - targets: ["llm-api:8000"]
+    owner: root
+    group: root
+    mode: '0644'
   notify: Restart prometheus
 
 - name: Pull prometheus image
