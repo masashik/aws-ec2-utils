@@ -25,9 +25,9 @@
 ```bash
 $ git clone git@github.com:masashik/aws-ec2-utils.git
 
-cd aws-ec2-utils/tofu/ec2
+$ cd aws-ec2-utils/tofu/ec2
 
-~/Downloads/aws-ec2-utils/tofu/ec2$ls
+~/Downloads/aws-ec2-utils/tofu/ec2$ ls
 backend.tf               modules                  terraform.tfvars.example
 main.tf                  outputs.tf               variables.tf
 ```
@@ -36,10 +36,10 @@ main.tf                  outputs.tf               variables.tf
 ```bash
 
 # Limiting Ingress at administrator's host IP to access EC2 Linux server port 22 and 8000
-ADMIN_IP="$(curl -fsS https://checkip.amazonaws.com || curl -fsS https://ifconfig.me)"
+$ ADMIN_IP="$(curl -fsS https://checkip.amazonaws.com || curl -fsS https://ifconfig.me)"
 
 # Verify if you properly got your IP.
-~/Downloads/aws-ec2-utils/tofu/ec2$echo $ADMIN_IP
+~/Downloads/aws-ec2-utils/tofu/ec2$ echo $ADMIN_IP
 (Ex.) 111.111.111.111
 
 # Initialize the OpenTofu
@@ -49,7 +49,7 @@ ADMIN_IP="$(curl -fsS https://checkip.amazonaws.com || curl -fsS https://ifconfi
 OpenTofu has been successfully initialized!
 
 # Please check if this file (.terraform.lock.hcl) is created.
-~/Downloads/aws-ec2-utils/tofu/ec2$ls .terraform.lock.hcl
+~/Downloads/aws-ec2-utils/tofu/ec2$ ls .terraform.lock.hcl
 .terraform.lock.hcl
 
 
@@ -100,24 +100,24 @@ Let's embed it into Ansible host file to.
 # inventory file is created based on the EC2Public IP/Private IP
 $ pwd
 /Users/masashi/Downloads/aws-ec2-utils/tofu/ec2
-cd ../../scripts
-bash gen_inventory.sh
+$ cd ../../scripts
+$ bash gen_inventory_llm.sh
 [OK] Inventory generated at ansible/inventory.ini
 
 # Check the created inventory.
-cat ../ansible/inventory.ini
+$ cat ../ansible/inventory.ini
 [dev]
 3.97.11.189 ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/aws-canada-backend-1.pem
 ```
 
 ### 3) Deploy LLM Stack（Ansible）
 ```bash
-cd ../ansible
+$ cd ../ansible
 
 # You need to set API key for OpenAI usage. You need to set in Ansible.
 # export OPENAI_API_KEY=sk-xxxx   # or you can set it in group_vars/all.yml
 
-ansible-playbook -i inventory.ini deploy_llm_stack.yml
+$ ansible-playbook -i inventory.ini deploy_llm_stack.yml
 ```
 Role: FastAPI LLM API setup and launch to prepare for Ollama and OpenAI backend.
 
