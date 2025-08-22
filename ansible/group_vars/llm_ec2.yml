@@ -9,13 +9,13 @@ expose_ollama_port: "11434"
 expose_prom_port: "9090"
 expose_grafana_port: "3000"
 
-llm_api_image: "<AWS_ACCOUNT_ID>.dkr.ecr.ca-central-1.amazonaws.com/aws-ec2-utils/llm-api-server:latest"
 ollama_host: "http://ollama:11434"
 openai_api_key: ""
 
 # ECR
-ecr_registry: "<AWS_ACCOUNT_ID>.dkr.ecr.ca-central-1.amazonaws.com"
-ecr_region: "ca-central-1"
+# ecr_registry: "<AWS_ACCOUNT_ID>.dkr.ecr.ca-central-1.amazonaws.com"
+# ecr_region: "ca-central-1"
+# llm_api_image: "<AWS_ACCOUNT_ID>.dkr.ecr.ca-central-1.amazonaws.com/aws-ec2-utils/llm-api-server:latest"
 
 expose_prometheus_port: "9090"
 

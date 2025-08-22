@@ -1,16 +1,17 @@
 ---
 # GHCR: login, pull, run
 
-#- name: Docker login to GHCR (using PAT)
-#  community.docker.docker_login:
-#    registry_url: ghcr.io
-#    username: "{{ ghcr_username }}"
-#    password: "{{ ghcr_token }}"
-#  become: true
-#  no_log: true
+# - name: Docker login to GHCR (using PAT)
+#   community.docker.docker_login:
+#     registry_url: ghcr.io
+#     username: "{{ ghcr_username }}"
+#     password: "{{ ghcr_token }}"
+#   become: true
+#   no_log: true
 
 # Example image value:
 #   llm_api_image: "ghcr.io/{{ ghcr_owner }}/llm-api-server:latest"
+
 - name: Pull llm-api image from GHCR (force refresh even for same tag)
   community.docker.docker_image:
     name: "{{ llm_api_image }}"
