@@ -233,7 +233,7 @@ tofu/ecs/terraform.tfstate
 tofu/ecs/terraform.tfstate.backup
 tofu/ecs/terraform.tfvars.backup
 
-ansible/inventory.ini
+ansible\/inventory.ini
 
 README.pdf
 *.png

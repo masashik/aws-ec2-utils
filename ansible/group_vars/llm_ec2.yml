@@ -9,12 +9,20 @@ expose_ollama_port: "11434"
 expose_prom_port: "9090"
 expose_grafana_port: "3000"
 
-llm_api_image: "581649156172.dkr.ecr.ca-central-1.amazonaws.com/aws-ec2-utils/llm-api-server:latest"
+llm_api_image: ".dkr.ecr.ca-central-1.amazonaws.com/aws-ec2-utils/llm-api-server:latest"
 ollama_host: "http://ollama:11434"
 openai_api_key: ""
 
 # ECR
-ecr_registry: "581649156172.dkr.ecr.ca-central-1.amazonaws.com"
+ecr_registry: ".dkr.ecr.ca-central-1.amazonaws.com"
 ecr_region: "ca-central-1"
 
 expose_prometheus_port: "9090"
+
+# GHCR auth (PAT with write:packages/read:packages)
+ghcr_username: ""
+ghcr_token: ""
+
+# Image naming (all lowercase is safest)
+ghcr_owner: "masashik"
+llm_api_image: "ghcr.io/masashik/aws-ec2-utils/llm-api-server:latest"

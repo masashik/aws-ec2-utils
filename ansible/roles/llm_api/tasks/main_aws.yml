@@ -1,0 +1,74 @@
+---
+- name: Ensure deps (curl, unzip) are present
+  ansible.builtin.package:
+    name:
+      - unzip
+    state: present
+  become: true
+
+- name: Download AWS CLI v2 bundle
+  ansible.builtin.get_url:
+    url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: /tmp/awscliv2.zip
+    mode: '0644'
+  become: true
+
+- name: Unpack AWS CLI v2 bundle
+  ansible.builtin.unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp
+    remote_src: true
+  become: true
+
+- name: Install/Update AWS CLI v2
+  ansible.builtin.command: /tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
+  args:
+    creates: /usr/local/bin/aws
+  become: true
+
+- name: Verify awscli version (should be v2)
+  ansible.builtin.command: aws --version
+  register: llm_api_aws_ver
+  changed_when: false
+  become: true
+
+- name: Get ECR password
+  ansible.builtin.command: aws ecr get-login-password --region "{{ ecr_region }}"
+  environment:
+    AWS_DEFAULT_REGION: "{{ ecr_region }}"
+  register: llm_api_ecr_pass
+  changed_when: false
+  no_log: true
+
+- name: Docker login to ECR
+  community.docker.docker_login:
+    registry_url: "{{ ecr_registry }}"
+    username: AWS
+    password: "{{ ecr_pass.stdout }}"
+  become: true
+  no_log: true
+
+- name: Pull llm-api image from ECR (force refresh even for same tag)
+  community.docker.docker_image:
+    name: "{{ llm_api_image }}"  # e.g. 5816.../aws-ec2-utils/llm-api-server:latest
+    source: pull
+    force_source: true  # <- pull even if image already exists
+  register: llm_api_pull
+  become: true
+
+- name: Run/Recreate llm-api container when image changed
+  community.docker.docker_container:
+    name: llm-api
+    image: "{{ llm_api_image }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ llm_docker_network }}"
+    ports:
+      - "{{ expose_llm_api_port }}:8000"
+    env:
+      OPENAI_API_KEY: "{{ openai_api_key }}"
+      OLLAMA_HOST: "{{ ollama_host }}"
+    recreate: "{{ llm_api_pull.changed }}"  # <- only recreate when image actually updated
+    pull: false                              # we already pulled above
+  become: true
