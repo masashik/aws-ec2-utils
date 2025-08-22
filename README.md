@@ -9,8 +9,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/masashik/aws-ec2-utils)
 [![codecov](https://codecov.io/gh/masashik/aws-ec2-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/masashik/aws-ec2-utils)
 
-
-<img width="1176" height="669" alt="LLM Inference API on AWS EC2 with full observability and CICD" src="https://github.com/user-attachments/assets/fb2023ba-c49c-4d01-ab45-f0cbf2ff2667" />
+<img width="1052" height="622" alt="LLM Inference API on AWS EC2 with full observability and CICD" src="https://github.com/user-attachments/assets/cb32f7e3-9908-4d9b-802d-c49d109f0b14" />
 
 # LLM API Server on EC2 — Quick Start (FastAPI + Ollama/OpenAI)
 
