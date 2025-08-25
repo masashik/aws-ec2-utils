@@ -1,13 +1,24 @@
-from fastapi import FastAPI
 from pydantic import BaseModel
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from fastapi.responses import Response
+from prometheus_client import (
+Counter,
+Histogram,
+generate_latest,
+CONTENT_TYPE_LATEST
+)
 import time
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 import os
+import signal
+import threading
+import time
+from typing import Optional
 import logging
 import httpx
 
+# -----------------------------
+# Config
+# -----------------------------
 OPENAI_BASE_URL = "https://api.openai.com/v1"
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -20,22 +31,69 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
 OLLAMA_API_URL = f"{OLLAMA_HOST.rstrip('/')}/api/generate"
 logger.info(f"OLLAMA_HOST={OLLAMA_HOST} OLLAMA_API_URL={OLLAMA_API_URL}")
 
-
+# -----------------------------
+# App & Metrics
+# -----------------------------
 app = FastAPI()
 
+_SHUTTING_DOWN = threading.Event()
+
 REQUEST_COUNT = Counter(
-    "llm_requests_total", "Total number of LLM requests", ["backend"]
+    "llm_requests_total",
+    "Total number of LLM requests",
+    ["route", "backend"],
 )
 
 REQUEST_LATENCY = Histogram(
-    "llm_request_latency_seconds", "Latency of LLM requests in seconds", ["backend"]
+    "llm_request_latency_seconds",
+    "LLM request latency (seconds)",
+    buckets=(0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12),
 )
 
-
+# -----------------------------
+# Models
+# -----------------------------
 class Query(BaseModel):
     prompt: str
     backend: str = "ollama"
+    model: Optional[str] = None  # e.g., "llama3.1" or "gpt-4o-mini"
 
+
+# -----------------------------
+# Middleware for metrics
+# -----------------------------
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start = time.perf_counter()
+    try:
+        response = await call_next(request)
+        return response
+    finally:
+        elapsed = time.perf_counter() - start
+        route = request.url.path
+        backend = request.headers.get("x-backend", "unknown")
+        REQUEST_COUNT.labels(route=route, backend=backend).inc()
+        REQUEST_LATENCY.observe(elapsed)
+
+# -----------------------------
+# Health & Metrics
+# -----------------------------
+@app.get("/healthz")
+async def healthz():
+    if _SHUTTING_DOWN.is_set():
+        return Response(content="shutting_down", status_code=503)
+    return JSONResponse({"status": "ok"})
+
+@app.get("/ready")
+async def ready():
+    # Replace with dependency checks (DB, upstreams) if needed
+    if _SHUTTING_DOWN.is_set():
+        return Response(content="shutting_down", status_code=503)
+    return JSONResponse({"ready": True})
+
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @app.post("/infer")
 async def generate_text(q: Query):
@@ -102,16 +160,14 @@ async def generate_text(q: Query):
         return {"error": "Unsupported backend"}
 
 
-@app.get("/metrics")
-def metrics():
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+# -----------------------------
+# Graceful shutdown (SIGTERM)
+# -----------------------------
+def _handle_sigterm(signum, frame):
+    _SHUTTING_DOWN.set()
+    # Allow in-flight requests to drain
+    time.sleep(GRACEFUL_TIMEOUT)
+    # Exit process to let systemd/docker handle restart/stop
+    os._exit(0)
 
-
-@app.get("/health")
-async def health():
-    return {"ok": True}
-
-
-@app.get("/ready")
-async def ready():
-    return {"ready": True}
+signal.signal(signal.SIGTERM, _handle_sigterm)

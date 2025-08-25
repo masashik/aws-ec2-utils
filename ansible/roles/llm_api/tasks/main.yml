@@ -36,3 +36,25 @@
     recreate: "{{ llm_api_pull.changed }}"
     pull: false
   become: true
+
+- name: Ensure workdir
+  file:
+    path: "{{ llm_api_workdir }}"
+    state: directory
+    owner: "{{ llm_api_user | default('ec2-user') }}"
+    group: "{{ llm_api_group | default('ec2-user') }}"
+
+- name: Install systemd unit
+  template:
+    src: llm_api.service.j2
+    dest: /etc/systemd/system/llm_api.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload & enable service
+  systemd:
+    daemon_reload: true
+    name: llm_api
+    state: started
+    enabled: true

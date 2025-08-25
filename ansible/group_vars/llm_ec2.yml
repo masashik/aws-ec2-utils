@@ -26,3 +26,7 @@ ghcr_token: ""
 # Image naming (all lowercase is safest)
 ghcr_owner: "masashik"
 llm_api_image: "ghcr.io/masashik/aws-ec2-utils/llm-api-server:latest"
+
+llm_api_workdir: /opt/llm_api
+llm_api_exec: /usr/local/bin/uvicorn llm_api.app.main:app --host 0.0.0.0 --port 8000
+llm_api_graceful_timeout: 25
