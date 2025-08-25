@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 from prometheus_client import (
-Counter,
-Histogram,
-generate_latest,
-CONTENT_TYPE_LATEST
+    Counter,
+    Histogram,
+    generate_latest,
+    CONTENT_TYPE_LATEST
 )
 import time
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -11,7 +11,6 @@ from fastapi.responses import JSONResponse
 import os
 import signal
 import threading
-import time
 from typing import Optional
 import logging
 import httpx
@@ -30,6 +29,7 @@ logger = logging.getLogger("uvicorn")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
 OLLAMA_API_URL = f"{OLLAMA_HOST.rstrip('/')}/api/generate"
 logger.info(f"OLLAMA_HOST={OLLAMA_HOST} OLLAMA_API_URL={OLLAMA_API_URL}")
+GRACEFUL_TIMEOUT = float(os.environ.get("GRACEFUL_TIMEOUT", "25"))
 
 # -----------------------------
 # App & Metrics
@@ -49,6 +49,7 @@ REQUEST_LATENCY = Histogram(
     "LLM request latency (seconds)",
     buckets=(0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12),
 )
+
 
 # -----------------------------
 # Models
@@ -75,6 +76,7 @@ async def metrics_middleware(request: Request, call_next):
         REQUEST_COUNT.labels(route=route, backend=backend).inc()
         REQUEST_LATENCY.observe(elapsed)
 
+
 # -----------------------------
 # Health & Metrics
 # -----------------------------
@@ -84,6 +86,7 @@ async def healthz():
         return Response(content="shutting_down", status_code=503)
     return JSONResponse({"status": "ok"})
 
+
 @app.get("/ready")
 async def ready():
     # Replace with dependency checks (DB, upstreams) if needed
@@ -91,9 +94,11 @@ async def ready():
         return Response(content="shutting_down", status_code=503)
     return JSONResponse({"ready": True})
 
+
 @app.get("/metrics")
 def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
 
 @app.post("/infer")
 async def generate_text(q: Query):
@@ -169,5 +174,6 @@ def _handle_sigterm(signum, frame):
     time.sleep(GRACEFUL_TIMEOUT)
     # Exit process to let systemd/docker handle restart/stop
     os._exit(0)
+
 
 signal.signal(signal.SIGTERM, _handle_sigterm)
