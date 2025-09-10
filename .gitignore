@@ -241,3 +241,7 @@ README.pdf
 tofu/**/terraform.tfstate*
 tofu/**/.terraform/
 *.tfvars
+
+AGENTS.md
+.vscode
+bin/
