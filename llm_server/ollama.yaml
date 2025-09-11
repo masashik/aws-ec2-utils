@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: llm
+spec:
+  selector:
+    app: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      # If you want to pin to nodes with GPUs later, add nodeSelector/tolerations here.
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 11434
+          env:
+            # Optional: keep models warm in RAM (tune as you like)
+            - name: OLLAMA_KEEP_ALIVE
+              value: "10m"
+            # Change to the model you want pre-pulled
+            - name: MODEL_NAME
+              value: "llama3.2:3b-instruct-q4_K_M"
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+          # Start the server, then immediately pull the model once
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -lc
+                  - |
+                    # wait a moment for the daemon to start listening
+                    sleep 2
+                    # pre-pull the model so first request is fast
+                    ollama pull "${MODEL_NAME}" || true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+      volumes:
+        - name: ollama-data
+          emptyDir: {}   # For persistence across Pod restarts, replace with a PVC
+---
+# OPTIONAL: Persistent storage (replace emptyDir above with this claim and create a StorageClass as needed)
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: ollama-pvc
+#   namespace: llm
+# spec:
+#   accessModes: ["ReadWriteOnce"]
+#   resources:
+#     requests:
+#       storage: 20Gi
