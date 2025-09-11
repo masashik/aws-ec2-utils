@@ -45,7 +45,7 @@ spec:
               value: "10m"
             # Change to the model you want pre-pulled
             - name: MODEL_NAME
-              value: "llama3.1"
+              value: "llama3.2:3b-instruct-q4_K_M"
           volumeMounts:
             - name: ollama-data
               mountPath: /root/.ollama

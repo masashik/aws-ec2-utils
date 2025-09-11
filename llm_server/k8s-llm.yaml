@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest
+          image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
