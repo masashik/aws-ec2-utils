@@ -1,0 +1,34 @@
+# Example inputs for tofu/eks
+
+project  = "llm-eks"
+aws_region = "ca-central-1"
+
+vpc_cidr = "10.20.0.0/16"
+azs      = ["ca-central-1a", "ca-central-1b"]
+
+public_subnet_cidrs  = ["10.20.1.0/24", "10.20.2.0/24"]
+private_subnet_cidrs = ["10.20.11.0/24", "10.20.12.0/24"]
+
+# EKS cluster
+kubernetes_version      = "1.33"
+endpoint_public_access  = true
+endpoint_private_access = true
+
+# Restrict the public API endpoint; set to your IP/32
+admin_cidr = "104.195.200.188/32"
+
+# Node group
+cluster_name         = "llm-eks"
+cluster_version      = "1.33"
+node_group_name    = "llm-workers"
+node_instance_types = ["t3.large"]
+node_disk_size     = 50
+desired_size       = 2
+min_size           = 1
+max_size           = 3
+node_desired_size    = 2
+node_min_size        = 2
+node_max_size        = 4
+node_ami_family      = "AL2023"   # OR "Bottlerocket"
+capacity_type        = "SPOT"
+ecr_repo_name        = "llm-api-server"
