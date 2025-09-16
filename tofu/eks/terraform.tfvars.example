@@ -1,34 +1,30 @@
-# Example inputs for tofu/eks
+project              = "llm-eks"
+aws_region           = "ca-central-1"
+vpc_cidr             = "10.0.0.0/16"
 
-project  = "llm-eks"
-aws_region = "ca-central-1"
+# choose AZs actually available to your account/region
+azs                  = ["ca-central-1a", "ca-central-1b", "ca-central-1d"]
 
-vpc_cidr = "10.20.0.0/16"
-azs      = ["ca-central-1a", "ca-central-1b"]
+public_subnet_cidrs  = ["10.0.0.0/19", "10.0.32.0/19", "10.0.64.0/19"]
+private_subnet_cidrs = ["10.0.96.0/19", "10.0.128.0/19", "10.0.160.0/19"]
 
-public_subnet_cidrs  = ["10.20.1.0/24", "10.20.2.0/24"]
-private_subnet_cidrs = ["10.20.11.0/24", "10.20.12.0/24"]
-
-# EKS cluster
-kubernetes_version      = "1.33"
-endpoint_public_access  = true
-endpoint_private_access = true
-
-# Restrict the public API endpoint; set to your IP/32
-admin_cidr = "104.195.200.188/32"
-
-# Node group
 cluster_name         = "llm-eks"
 cluster_version      = "1.33"
-node_group_name    = "llm-workers"
-node_instance_types = ["t3.large"]
-node_disk_size     = 50
-desired_size       = 2
-min_size           = 1
-max_size           = 3
+
+node_instance_types  = ["t3.large"]
 node_desired_size    = 2
 node_min_size        = 2
 node_max_size        = 4
-node_ami_family      = "AL2023"   # OR "Bottlerocket"
 capacity_type        = "SPOT"
+node_ami_family      = "AL2023"  # or "BOTTLEROCKET"
+
+# use your real public IP if you want to lock it down:
+# public_access_cidrs = ["<YOUR_PUBLIC_IP>/32"]
+#public_access_cidrs = ["104.104.104.104/32"]
+#public_access_cidrs  = ["0.0.0.0/0"]
+
 ecr_repo_name        = "llm-api-server"
+
+k8s_namespace        = "llm"
+ollama_model         = "llama3.2:3b-instruct-q4_K_M"
+# openai_api_key       = "YOUR_API_KEY"
