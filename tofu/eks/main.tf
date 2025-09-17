@@ -142,11 +142,8 @@ module "lb_irsa" {
 }
 
 # 5) Helm: AWS Load Balancer Controller (uses existing SA via IRSA)
-#resource "kubernetes_namespace" "kube_system" {
-#  metadata { name = "kube-system" }
-#}
-
 resource "kubernetes_service_account" "aws_lb_controller" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
@@ -159,6 +156,7 @@ resource "kubernetes_service_account" "aws_lb_controller" {
 }
 
 resource "helm_release" "aws_load_balancer_controller" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   name       = "aws-load-balancer-controller"
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
@@ -170,9 +168,23 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "serviceAccount.create"
     value = "false"
   }
+
+  # set {
+  #   name = "serviceAccount.create"
+  #   value = "true"
+  # }
+
+  set {
+    name = "serviceAccount.name"
+    value = "aws-load-balancer-controller"
+  }
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = module.lb_irsa.iam_role_arn
+  }
   set {
     name  = "serviceAccount.name"
-    value = kubernetes_service_account.aws_lb_controller.metadata[0].name
+    value = kubernetes_service_account.aws_lb_controller[0].metadata[0].name
   }
   set {
     name  = "clusterName"
@@ -191,11 +203,8 @@ resource "helm_release" "aws_load_balancer_controller" {
 }
 
 # 6) K8s: namespace
-# resource "kubernetes_namespace" "llm" {
-#   metadata { name = var.k8s_namespace }
-#   depends_on = [module.eks, module.aws_auth]
-# }
 resource "kubernetes_namespace" "llm" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata { name = var.k8s_namespace }
   depends_on = [module.eks, aws_eks_access_entry.me, aws_eks_access_policy_association.me_admin]
 }
@@ -203,9 +212,10 @@ resource "kubernetes_namespace" "llm" {
 
 # 7) K8s: Secrets / ConfigMap
 resource "kubernetes_secret" "llm_secrets" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "llm-secrets"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
   }
   data = {
     OPENAI_API_KEY = var.openai_api_key
@@ -214,9 +224,10 @@ resource "kubernetes_secret" "llm_secrets" {
 }
 
 resource "kubernetes_config_map" "llm_config" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "llm-config"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
   }
   data = {
     OLLAMA_API_URL = "http://ollama:11434/api/generate"
@@ -226,9 +237,10 @@ resource "kubernetes_config_map" "llm_config" {
 
 # 8) K8s: Ollama (Deployment + Service)
 resource "kubernetes_deployment" "ollama" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "ollama"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
     labels    = { app = "ollama" }
   }
   spec {
@@ -297,9 +309,10 @@ resource "kubernetes_deployment" "ollama" {
 }
 
 resource "kubernetes_service" "ollama" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "ollama"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
   }
   spec {
     selector = { app = "ollama" }
@@ -314,9 +327,10 @@ resource "kubernetes_service" "ollama" {
 
 # 9) K8s: LLM API (Deployment + Service)
 resource "kubernetes_deployment" "llm_server" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "llm-server"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
     labels    = { app = "llm-server" }
   }
   spec {
@@ -341,7 +355,7 @@ resource "kubernetes_deployment" "llm_server" {
             name = "OPENAI_API_KEY"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.llm_secrets.metadata[0].name
+                name = kubernetes_secret.llm_secrets[0].metadata[0].name
                 key  = "OPENAI_API_KEY"
               }
             }
@@ -350,7 +364,7 @@ resource "kubernetes_deployment" "llm_server" {
             name = "OLLAMA_API_URL"
             value_from {
               config_map_key_ref {
-                name = kubernetes_config_map.llm_config.metadata[0].name
+                name = kubernetes_config_map.llm_config[0].metadata[0].name
                 key  = "OLLAMA_API_URL"
               }
             }
@@ -359,7 +373,7 @@ resource "kubernetes_deployment" "llm_server" {
             name = "OLLAMA_MODEL"
             value_from {
               config_map_key_ref {
-                name = kubernetes_config_map.llm_config.metadata[0].name
+                name = kubernetes_config_map.llm_config[0].metadata[0].name
                 key  = "OLLAMA_MODEL"
               }
             }
@@ -398,9 +412,10 @@ resource "kubernetes_deployment" "llm_server" {
 }
 
 resource "kubernetes_service" "llm_server" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "llm-server"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
   }
   spec {
     selector = { app = "llm-server" }
@@ -415,9 +430,10 @@ resource "kubernetes_service" "llm_server" {
 
 # 10) K8s: ALB Ingress (L7, internet-facing, pod IP targets)
 resource "kubernetes_ingress_v1" "llm_server" {
+  count = try(tobool(var.enable_k8s_phase), false) ? 1 : 0
   metadata {
     name      = "llm-server"
-    namespace = kubernetes_namespace.llm.metadata[0].name
+    namespace = kubernetes_namespace.llm[0].metadata[0].name
     annotations = {
       "kubernetes.io/ingress.class"              = "alb"
       "alb.ingress.kubernetes.io/scheme"         = "internet-facing"
@@ -433,7 +449,7 @@ resource "kubernetes_ingress_v1" "llm_server" {
           path_type = "Prefix"
           backend {
             service {
-              name = kubernetes_service.llm_server.metadata[0].name
+              name = kubernetes_service.llm_server[0].metadata[0].name
               port { number = 80 }
             }
           }

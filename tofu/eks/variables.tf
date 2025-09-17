@@ -1,3 +1,7 @@
+variable "enable_k8s_phase" {
+  type    = bool
+  default = false
+}
 variable "project"               { type = string }
 variable "aws_region"            { type = string }
 variable "vpc_cidr"              { type = string }
